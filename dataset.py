@@ -54,33 +54,45 @@ class MovieCorpusDataset(Dataset):
         self.n_seq = 0
         self.load_data()
 
-        # cache
         self.ids = [value['id'] for value in self.data.values() if value['question_id']]
         self.len = len(self.ids)
     
     def load_data(self):
-        with open(self.path_data, 'r', encoding='iso-8859-1') as f:
-            for line in f:
-                # load line as json
-                obj = json.loads(line)
+        try:
+            cache = load(PATH_CACHE)
+            self.data = cache['data']
+            self.n_seq = cache['n_seq']
+            self.len = cache['len']
+        except:
+            with open(self.path_data, 'r', encoding='iso-8859-1') as f:
+                for line in f:
+                    # load line as json
+                    obj = json.loads(line)
 
-                # make converstaion data
-                conversation_id = obj['conversation_id']
-                question_id = obj['reply-to']
-                answer_id = obj['id']
-                text = obj['text'].strip()
-                text_encode = BOS + self.vocab.EncodeAsIds(text) + EOS
-                # text_encode = BOS + EOS
+                    # make converstaion data
+                    conversation_id = obj['conversation_id']
+                    question_id = obj['reply-to']
+                    answer_id = obj['id']
+                    text = obj['text'].strip()
+                    text_encode = BOS + self.vocab.EncodeAsIds(text) + EOS
+                    # text_encode = BOS + EOS
 
-                self.data[answer_id] = {
-                    'conversation_id': conversation_id,
-                    'question_id': question_id,
-                    'id': answer_id,
-                    'text': text,
-                    'encode': text_encode
-                }
+                    self.data[answer_id] = {
+                        'conversation_id': conversation_id,
+                        'question_id': question_id,
+                        'id': answer_id,
+                        'text': text,
+                        'encode': text_encode
+                    }
+                    
+                    self.n_seq = max(self.n_seq, len(text_encode))
                 
-                self.n_seq = max(self.n_seq, len(text_encode))
+            # cache
+            cache = {
+                'data': self.data,
+                'n_seq': self.n_seq,
+            }
+            save(cache, PATH_CACHE)
         
     def __len__(self):
         return self.len
@@ -110,6 +122,7 @@ class TestDataset(Dataset):
         self.data = []
         self.n_seq = 0
         self.load_data()
+        
         self.len = len(self.data)
     
     def __len__(self):
@@ -117,7 +130,6 @@ class TestDataset(Dataset):
     
     def load_data(self):
         try:
-            raise ValueError("test")
             cache = load(PATH_CACHE)
             self.data = cache['data']
             self.n_seq = cache['n_seq']
@@ -144,7 +156,7 @@ class TestDataset(Dataset):
                 'data': self.data,
                 'n_seq': self.n_seq
             }
-            # save(cache, PATH_CACHE)
+            save(cache, PATH_CACHE)
         
     def __getitem__(self, index):
         obj = self.data[index]

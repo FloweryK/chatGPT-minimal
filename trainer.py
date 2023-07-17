@@ -6,6 +6,13 @@ from constant import *
 torch.set_printoptions(linewidth=10000)
 
 
+def decodeSample(vocab, sample):
+    print(vocab.DecodeIds(sample))
+    print([vocab.DecodeIds([piece]) for piece in sample])
+    print(sample)
+    print()
+
+
 class Trainer:
     def __init__(self, model, criterion, optimizer, vocab):
         self.model = model
@@ -13,11 +20,6 @@ class Trainer:
         self.optimizer = optimizer
         self.vocab = vocab
         self.writer = SummaryWriter()
-    
-    def decodeSample(self, sample):
-        print(self.vocab.DecodeIds(sample))
-        print([self.vocab.DecodeIds([piece]) for piece in sample])
-        print(sample)
     
     def run_epoch(self, epoch, dataloader, device, train=True):
         losses = []
@@ -50,41 +52,31 @@ class Trainer:
                     self.optimizer.step()    
                 
                 # sample
-                sample_enc_input = x_enc[0]
-                sample_enc_input = sample_enc_input[~sample_enc_input.eq(0)]
-
-                sample_dec_input = x_dec_input[0]
-                sample_dec_input = sample_dec_input[~sample_dec_input.eq(0)]
-
-                sample_dec_target = x_dec_target[0]
-                sample_predict = torch.argmax(predict, dim=1)[0][~sample_dec_target.eq(0)]
-                sample_dec_target = sample_dec_target[~sample_dec_target.eq(0)]
-
-                print()
-                print("enc_input")
-                self.decodeSample(sample_enc_input.tolist())
-                print()
+                sample_enc_input = x_enc[0][~x_enc[0].eq(0)]
+                sample_dec_input = x_dec_input[0][~x_dec_input[0].eq(0)]
+                sample_dec_target = x_dec_target[0][~x_dec_target[0].eq(0)]
+                sample_predict = torch.argmax(predict, dim=1)[0][~x_dec_target[0].eq(0)]
+                
+                print("\n" + "enc_input")
+                decodeSample(self.vocab, sample_enc_input.tolist())
                 print("dec_input")
-                self.decodeSample(sample_dec_input.tolist())
-                print()
+                decodeSample(self.vocab, sample_dec_input.tolist())
                 print("dec_target")
-                self.decodeSample(sample_dec_target.tolist())
-                print()
+                decodeSample(self.vocab, sample_dec_target.tolist())
                 print("dec_predict")
-                self.decodeSample(sample_predict.tolist())
-                print()
+                decodeSample(self.vocab, sample_predict.tolist())
                 
                 # calculate performance
                 predict_flatten = torch.argmax(predict, dim=1).flatten()
-                x_dec_target_flatten = x_dec_target.flatten()
-                mask = ~x_dec_target_flatten.eq(0)
-                correct = torch.eq(predict_flatten[mask], x_dec_target_flatten[mask]).detach().cpu().tolist()
+                target_flatten = x_dec_target.flatten()
+                mask = ~target_flatten.eq(0)
+                correct = torch.eq(predict_flatten[mask], target_flatten[mask]).detach().cpu().tolist()
                 match.extend(correct)
                 accuracy = np.mean(match) if match else 0
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | Acc: {accuracy:.3f}")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr} | Acc: {accuracy:.3f}")
 
             # save model
             if train:

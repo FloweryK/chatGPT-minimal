@@ -1,6 +1,6 @@
 import torch.nn as nn
 import config
-from model.multi_head_attention import MultiHeadAttention
+from transformer.attention import MultiHeadAttention
 
 
 class EncoderLayer(nn.Module):
@@ -16,10 +16,10 @@ class EncoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(config.d_emb)
     
     def forward(self, x_enc, mask_enc_self):
-        y_enc = self.norm1(x_enc + self.dropout1(self.attention(x_enc, x_enc, x_enc, mask_enc_self)))
-        y_enc = self.norm2(y_enc + self.dropout2(self.feedforward(y_enc)))
+        x_enc = self.norm1(x_enc + self.dropout1(self.attention(x_enc, x_enc, x_enc, mask_enc_self)))
+        x_enc = self.norm2(x_enc + self.dropout2(self.feedforward(x_enc)))
         
-        return y_enc
+        return x_enc
 
 
 class Encoder(nn.Module):
@@ -33,6 +33,6 @@ class Encoder(nn.Module):
         # mask: (n_batch, n_seq_enc, n_seq_enc)
 
         for layer in self.layers:
-            y_enc = layer(x_enc, mask_enc_self)
+            x_enc = layer(x_enc, mask_enc_self)
 
-        return y_enc
+        return x_enc

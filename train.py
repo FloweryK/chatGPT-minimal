@@ -5,7 +5,6 @@ import config
 from constant import *
 from dataset import MovieCorpusDataset, TestDataset, collate_fn
 from model.classifier import Classifier
-# from archive.model_02.classifier import Classifier
 from trainer import Trainer
 
 
@@ -37,8 +36,8 @@ if __name__ == '__main__':
     vocab.Load(PATH_VOCAB)
 
     # dataset
-    dataset = MovieCorpusDataset(vocab, PATH_DATA)
-    # dataset = TestDataset(vocab, PATH_DATA)
+    # dataset = MovieCorpusDataset(vocab, PATH_DATA)
+    dataset = TestDataset(vocab, PATH_DATA)
     train_size = int(RATE_SPLIT * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 
@@ -49,6 +48,7 @@ if __name__ == '__main__':
     # model
     model = Classifier()
     model = model.to(config.device)
+    print("model parameters:", sum(p.numel() for p in model.parameters() if p.requires_grad))
     # model.load_state_dict(torch.load(PATH_WEIGHT, map_location=DEVICE))
 
     # trainer 

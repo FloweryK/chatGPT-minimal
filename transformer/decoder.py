@@ -1,6 +1,6 @@
 import torch.nn as nn
 import config
-from model.multi_head_attention import MultiHeadAttention
+from transformer.attention import MultiHeadAttention
 
 
 class DecoderLayer(nn.Module):
@@ -20,14 +20,13 @@ class DecoderLayer(nn.Module):
         self.norm3 = nn.LayerNorm(config.d_emb)
     
     def forward(self, x_dec, y_enc, mask_dec_self, mask_dec_enc):
-        y_dec = self.norm1(x_dec + self.dropout1(self.attention_self(x_dec, x_dec, x_dec, mask_dec_self)))
-        y_dec = self.norm2(y_dec + self.dropout2(self.attention_enc(y_dec, y_enc, y_enc, mask_dec_enc)))
-        y_dec = self.norm2(y_dec + self.dropout3(self.feedforward(y_dec)))
+        x_dec = self.norm1(x_dec + self.dropout1(self.attention_self(x_dec, x_dec, x_dec, mask_dec_self)))
+        x_dec = self.norm2(x_dec + self.dropout2(self.attention_enc(x_dec, y_enc, y_enc, mask_dec_enc)))
+        x_dec = self.norm2(x_dec + self.dropout3(self.feedforward(x_dec)))
 
-        return y_dec
+        return x_dec
 
 
-# COMPLETE
 class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
@@ -41,6 +40,6 @@ class Decoder(nn.Module):
         # mask_dec_enc: (n_batch, n_seq_dec, n_seq_enc)
 
         for layer in self.layers:
-            y_dec = layer(x_dec, y_enc, mask_dec_self, mask_dec_enc)
+            x_dec = layer(x_dec, y_enc, mask_dec_self, mask_dec_enc)
         
-        return y_dec
+        return x_dec
