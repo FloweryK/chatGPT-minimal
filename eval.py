@@ -30,12 +30,15 @@ if __name__ == "__main__":
 
     for _ in range(50):
         predict = model(x_enc, x_dec)
-        last_word = torch.argmax(predict[:, -1:, :], dim=-1)
-
-        if last_word.item() == EOS[0]:
-            break
+        last_word = torch.argmax(predict[:, :, -1:], dim=1)
 
         x_dec = torch.cat([x_dec, last_word], dim=1)
+        print(last_word)
+        
+        if last_word.item() == EOS[0]:
+            break
     
     print(vocab.DecodeIds(x_enc.cpu().tolist()[0]))
+    print(x_enc.cpu().tolist()[0])
     print(vocab.DecodeIds(x_dec.cpu().tolist()[0]))
+    print(x_dec.cpu().tolist()[0])
