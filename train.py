@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # trainer 
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD)
     adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
-    optimizer = AdamWarmup(model_size=config.d_emb, warmup_steps=1000, optimizer=adam)
+    optimizer = AdamWarmup(model_size=config.d_emb, warmup_steps=config.warmup_steps, optimizer=adam)
     trainer = Trainer(model, criterion, optimizer, vocab)
 
     # train

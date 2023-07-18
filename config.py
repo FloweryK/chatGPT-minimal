@@ -9,7 +9,8 @@ dropout = 0.1
 scale = (512//8)**(1/2)
 
 # training
-n_epoch = 30
-n_batch = 16
+n_epoch = 50
+n_batch = 32
 device = 'cuda'
-lr = 0
+lr = 1e-4
+warmup_steps = 4000
