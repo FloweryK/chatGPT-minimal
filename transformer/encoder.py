@@ -1,6 +1,7 @@
 import torch.nn as nn
 import config
 from transformer.attention import MultiHeadAttention
+from transformer.positionwise_feedforward import PositionwiseFeedForward
 
 
 class EncoderLayer(nn.Module):
@@ -11,7 +12,7 @@ class EncoderLayer(nn.Module):
         self.dropout1 = nn.Dropout(config.dropout)
         self.norm1 = nn.LayerNorm(config.d_emb)
 
-        self.feedforward = nn.Linear(config.d_emb, config.d_emb)
+        self.feedforward = PositionwiseFeedForward()
         self.dropout2 = nn.Dropout(config.dropout)
         self.norm2 = nn.LayerNorm(config.d_emb)
     
