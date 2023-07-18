@@ -36,9 +36,8 @@ if __name__ == '__main__':
     vocab.Load(PATH_VOCAB)
 
     # dataset
-    # dataset = MovieCorpusDataset(vocab, PATH_DATA)
-    dataset = TestDataset(vocab, PATH_DATA)
-    train_size = int(RATE_SPLIT * len(dataset))
+    dataset = MovieCorpusDataset(vocab, PATH_DATA)
+    train_size = int(config.rate_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 
     # dataloader
@@ -46,10 +45,9 @@ if __name__ == '__main__':
     testloader = DataLoader(testset, batch_size=config.n_batch, shuffle=True, collate_fn=collate_fn)
 
     # model
-    model = Classifier()
+    model = Classifier(config)
     model = model.to(config.device)
     print("model parameters:", sum(p.numel() for p in model.parameters() if p.requires_grad))
-    # model.load_state_dict(torch.load(PATH_WEIGHT, map_location=DEVICE))
 
     # trainer 
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD)

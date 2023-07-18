@@ -17,13 +17,13 @@ if __name__ == "__main__":
     vocab.load(PATH_VOCAB)
 
     # model
-    model = Classifier()
+    model = Classifier(config)
     model = model.to(config.device)
     model.load_state_dict(torch.load(PATH_WEIGHT, map_location=config.device))
 
     # inputs
-    x_enc = torch.tensor([BOS + vocab.EncodeAsIds(args.inputs[0]) + EOS]).to(config.device)
-    x_dec = torch.tensor([BOS]).to(config.device)
+    x_enc = torch.tensor([[BOS] + vocab.EncodeAsIds(args.inputs[0]) + [EOS]]).to(config.device)
+    x_dec = torch.tensor([[BOS]]).to(config.device)
 
     # forward
     model.eval()
@@ -33,9 +33,8 @@ if __name__ == "__main__":
         last_word = torch.argmax(predict[:, :, -1:], dim=1)
 
         x_dec = torch.cat([x_dec, last_word], dim=1)
-        print(last_word)
         
-        if last_word.item() == EOS[0]:
+        if last_word.item() == EOS:
             break
     
     print(vocab.DecodeIds(x_enc.cpu().tolist()[0]))

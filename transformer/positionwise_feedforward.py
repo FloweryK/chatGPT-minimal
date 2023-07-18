@@ -1,9 +1,8 @@
 import torch.nn as nn
-import config
 
 
 class PositionwiseFeedForward(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
         
         self.linear1 = nn.Linear(config.d_emb, config.d_hidden)

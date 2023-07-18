@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-import config
 
 
 class PositionalEmbedding(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
         
         # indices
@@ -25,11 +24,11 @@ class PositionalEmbedding(nn.Module):
 
 
 class Embedding(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
 
         self.input_embedding = nn.Embedding(config.n_vocab, config.d_emb)
-        self.positional_embedding = PositionalEmbedding()
+        self.positional_embedding = PositionalEmbedding(config)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):

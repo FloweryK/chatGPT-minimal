@@ -6,11 +6,11 @@ from constant import *
 torch.set_printoptions(linewidth=10000)
 
 
-def decodeSample(vocab, sample):
+def decodeSample(prefix, vocab, sample):
+    print(prefix)
     print(vocab.DecodeIds(sample))
     print([vocab.DecodeIds([piece]) for piece in sample])
-    print(sample)
-    print()
+    print(sample, '\n')
 
 
 class Trainer:
@@ -57,14 +57,10 @@ class Trainer:
                 sample_dec_target = x_dec_target[0][~x_dec_target[0].eq(0)]
                 sample_predict = torch.argmax(predict, dim=1)[0][~x_dec_target[0].eq(0)]
                 
-                print("\n" + "enc_input")
-                decodeSample(self.vocab, sample_enc_input.tolist())
-                print("dec_input")
-                decodeSample(self.vocab, sample_dec_input.tolist())
-                print("dec_target")
-                decodeSample(self.vocab, sample_dec_target.tolist())
-                print("dec_predict")
-                decodeSample(self.vocab, sample_predict.tolist())
+                decodeSample("\nenc_input", self.vocab, sample_enc_input.tolist())
+                decodeSample("dec_input", self.vocab, sample_dec_input.tolist())
+                decodeSample("dec_target", self.vocab, sample_dec_target.tolist())
+                decodeSample("dec_predict", self.vocab, sample_predict.tolist())
                 
                 # calculate performance
                 predict_flatten = torch.argmax(predict, dim=1).flatten()
@@ -76,13 +72,13 @@ class Trainer:
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr} | Acc: {accuracy:.3f}")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr:.8f} | Acc: {accuracy:.3f}")
 
-            # save model
-            if train:
-                torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
-            
             # tensorboard
             self.writer.add_scalar('Loss/train' if train else 'Loss/test', np.mean(losses), epoch)
             self.writer.add_scalar('Acc/train' if train else 'Acc/test', accuracy, epoch)
 
+        # save model
+        if train:
+            torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
+        

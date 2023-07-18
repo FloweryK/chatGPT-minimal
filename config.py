@@ -1,3 +1,6 @@
+# dataset
+rate_split = 0.9
+
 # model
 n_vocab = 8000+7
 n_seq = 1000
@@ -9,8 +12,8 @@ dropout = 0.1
 scale = (512//8)**(1/2)
 
 # training
-n_epoch = 50
-n_batch = 32
+n_epoch = 100
+n_batch = 16
 device = 'cuda'
-lr = 1e-4
+lr = 0
 warmup_steps = 4000

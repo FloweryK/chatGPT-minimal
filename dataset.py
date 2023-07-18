@@ -74,8 +74,8 @@ class MovieCorpusDataset(Dataset):
                     question_id = obj['reply-to']
                     answer_id = obj['id']
                     text = obj['text'].strip()
-                    text_encode = BOS + self.vocab.EncodeAsIds(text) + EOS
-                    # text_encode = BOS + EOS
+                    text_encode = [BOS] + self.vocab.EncodeAsIds(text) + [EOS]
+                    # text_encode = [BOS] + [EOS]
 
                     self.data[answer_id] = {
                         'conversation_id': conversation_id,
@@ -137,11 +137,11 @@ class TestDataset(Dataset):
             df = pd.read_csv(self.path_data)
             for _, row in df.iterrows():
                 question = row['Q']
-                question_encode = BOS + self.vocab.EncodeAsIds(question) + EOS
-                # question_encode = BOS + EOS
+                question_encode = [BOS] + self.vocab.EncodeAsIds(question) + [EOS]
+                # question_encode = [BOS] + [EOS]
 
                 answer = row['A']
-                answer_encode = BOS + self.vocab.EncodeAsIds(answer) + EOS
+                answer_encode = [BOS] + self.vocab.EncodeAsIds(answer) + [EOS]
 
                 self.data.append({
                     'question': question, 

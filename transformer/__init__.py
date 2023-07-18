@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import config
 from transformer.embedding import Embedding
 from transformer.encoder import Encoder
 from transformer.decoder import Decoder
@@ -21,22 +20,23 @@ def mask_subsequent(q, k, n_head):
 
 
 class Transformer(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
 
-        self.embedding = Embedding()
-        self.encoder = Encoder()
-        self.decoder = Decoder()
+        self.n_head = config.n_head
+        self.embedding = Embedding(config)
+        self.encoder = Encoder(config)
+        self.decoder = Decoder(config)
 
     def forward(self, x_enc, x_dec):
         # mask_enc_self: (n_batch, n_head, n_seq_enc, n_seq_enc)
-        mask_enc_self = mask_pad(x_enc, x_enc, config.n_head)
+        mask_enc_self = mask_pad(x_enc, x_enc, self.n_head)
 
         # mask_dec_self: (n_batch, n_head, n_seq_dec, n_seq_dec)
-        mask_dec_self = mask_subsequent(x_dec, x_dec, config.n_head)
+        mask_dec_self = mask_subsequent(x_dec, x_dec, self.n_head)
 
         # mask_dec_enc: (n_batch, n_head, n_seq_dec, n_seq_enc)
-        mask_dec_enc = mask_pad(x_dec, x_enc, config.n_head)
+        mask_dec_enc = mask_pad(x_dec, x_enc, self.n_head)
 
         # embedding
         # x_enc: (n_batch, n_seq_enc, d_emb)

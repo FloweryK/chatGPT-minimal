@@ -1,22 +1,21 @@
 import torch.nn as nn
-import config
 from transformer.attention import MultiHeadAttention
 from transformer.positionwise_feedforward import PositionwiseFeedForward
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
 
-        self.attention_self = MultiHeadAttention()
+        self.attention_self = MultiHeadAttention(config)
         self.dropout1 = nn.Dropout(config.dropout)
         self.norm1 = nn.LayerNorm(config.d_emb)
 
-        self.attention_enc = MultiHeadAttention()
+        self.attention_enc = MultiHeadAttention(config)
         self.dropout2 = nn.Dropout(config.dropout)
         self.norm2 = nn.LayerNorm(config.d_emb)
 
-        self.feedforward = PositionwiseFeedForward()
+        self.feedforward = PositionwiseFeedForward(config)
         self.dropout3 = nn.Dropout(config.dropout)
         self.norm3 = nn.LayerNorm(config.d_emb)
     
@@ -29,10 +28,10 @@ class DecoderLayer(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
 
-        self.layers = nn.ModuleList([DecoderLayer() for _ in range(config.n_layer)])
+        self.layers = nn.ModuleList([DecoderLayer(config) for _ in range(config.n_layer)])
     
     def forward(self, x_dec, y_enc, mask_dec_self, mask_dec_enc):
         # x_dec: (n_batch, n_seq_dec, d_emb)

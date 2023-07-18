@@ -1,18 +1,17 @@
 import torch.nn as nn
-import config
 from transformer.attention import MultiHeadAttention
 from transformer.positionwise_feedforward import PositionwiseFeedForward
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
         
-        self.attention = MultiHeadAttention()
+        self.attention = MultiHeadAttention(config)
         self.dropout1 = nn.Dropout(config.dropout)
         self.norm1 = nn.LayerNorm(config.d_emb)
 
-        self.feedforward = PositionwiseFeedForward()
+        self.feedforward = PositionwiseFeedForward(config)
         self.dropout2 = nn.Dropout(config.dropout)
         self.norm2 = nn.LayerNorm(config.d_emb)
     
@@ -24,10 +23,10 @@ class EncoderLayer(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
 
-        self.layers = nn.ModuleList([EncoderLayer() for _ in range(config.n_layer)])
+        self.layers = nn.ModuleList([EncoderLayer(config) for _ in range(config.n_layer)])
     
     def forward(self, x_enc, mask_enc_self):
         # x_enc: (n_batch, n_seq_enc)
