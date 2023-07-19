@@ -3,16 +3,16 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import config
 from constant import *
-from dataset import MovieCorpusDataset, TestDataset, collate_fn
+from dataset import KoreanQADataset, collate_fn
 from model.classifier import Classifier
 from trainer import Trainer
 
 
 class AdamWarmup:
-    def __init__(self, model_size, warmup_steps, optimizer):
+    def __init__(self, optimizer, model_size, warmup_steps):
+        self.optimizer = optimizer
         self.model_size = model_size
         self.warmup_steps = warmup_steps
-        self.optimizer = optimizer
         self.current_step = 0
         self.lr = 0
         
@@ -25,6 +25,7 @@ class AdamWarmup:
         lr = self.get_lr()
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
+
         # update the learning rate
         self.lr = lr
         self.optimizer.step()   
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     vocab.Load(PATH_VOCAB)
 
     # dataset
-    dataset = MovieCorpusDataset(vocab, PATH_DATA)
+    dataset = KoreanQADataset(vocab, PATH_DATA)
     train_size = int(config.rate_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     # trainer 
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD)
     adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
-    optimizer = AdamWarmup(model_size=config.d_emb, warmup_steps=config.warmup_steps, optimizer=adam)
+    optimizer = AdamWarmup(adam, config.d_emb, config.warmup_steps)
     trainer = Trainer(model, criterion, optimizer, vocab)
 
     # train

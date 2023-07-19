@@ -6,13 +6,6 @@ from constant import *
 torch.set_printoptions(linewidth=10000)
 
 
-def decodeSample(prefix, vocab, sample):
-    print(prefix)
-    print(vocab.DecodeIds(sample))
-    print([vocab.DecodeIds([piece]) for piece in sample])
-    print(sample, '\n')
-
-
 class Trainer:
     def __init__(self, model, criterion, optimizer, vocab):
         self.model = model
@@ -20,6 +13,12 @@ class Trainer:
         self.optimizer = optimizer
         self.vocab = vocab
         self.writer = SummaryWriter()
+    
+    def decodeSample(self, prefix, sample):
+        print(prefix)
+        print(self.vocab.DecodeIds(sample))
+        print([self.vocab.DecodeIds([piece]) for piece in sample])
+        print(sample, '\n')
     
     def run_epoch(self, epoch, dataloader, device, train=True):
         losses = []
@@ -56,11 +55,10 @@ class Trainer:
                 sample_dec_input = x_dec_input[0][~x_dec_input[0].eq(0)]
                 sample_dec_target = x_dec_target[0][~x_dec_target[0].eq(0)]
                 sample_predict = torch.argmax(predict, dim=1)[0][~x_dec_target[0].eq(0)]
-                
-                decodeSample("\nenc_input", self.vocab, sample_enc_input.tolist())
-                decodeSample("dec_input", self.vocab, sample_dec_input.tolist())
-                decodeSample("dec_target", self.vocab, sample_dec_target.tolist())
-                decodeSample("dec_predict", self.vocab, sample_predict.tolist())
+                self.decodeSample("\nenc_input", sample_enc_input.tolist())
+                self.decodeSample("dec_input", sample_dec_input.tolist())
+                self.decodeSample("dec_target", sample_dec_target.tolist())
+                self.decodeSample("dec_predict", sample_predict.tolist())
                 
                 # calculate performance
                 predict_flatten = torch.argmax(predict, dim=1).flatten()
@@ -74,11 +72,11 @@ class Trainer:
                 pbar.update(1)
                 pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr:.8f} | Acc: {accuracy:.3f}")
 
+            # save model
+            if train and ((epoch + 1) % 10 == 0):
+                torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
+            
             # tensorboard
             self.writer.add_scalar('Loss/train' if train else 'Loss/test', np.mean(losses), epoch)
             self.writer.add_scalar('Acc/train' if train else 'Acc/test', accuracy, epoch)
 
-        # save model
-        if train:
-            torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
-        

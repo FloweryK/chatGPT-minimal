@@ -1,7 +1,5 @@
-import torch
 import torch.nn as nn
 from transformer import Transformer
-torch.set_printoptions(linewidth=10000, edgeitems=3)
 
 
 class Classifier(nn.Module):
