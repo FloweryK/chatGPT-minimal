@@ -19,6 +19,8 @@ class PositionalEmbedding(nn.Module):
     def forward(self, x):
         n_seq = x.size(-1)
         i_seq = torch.arange(n_seq).to(x.device)
+
+        # x: (n_batch, n_seq, d_emb)
         x = self.embedding(i_seq)
         return x
 
@@ -32,6 +34,9 @@ class Embedding(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
+        # x: (n_batch, n_seq)
+        
+        # x: (n_batch, n_seq, d_emb)
         x = self.input_embedding(x) + self.positional_embedding(x)
         x = self.dropout(x)
         return x

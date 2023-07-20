@@ -6,16 +6,30 @@ from transformer.decoder import Decoder
 
 
 def mask_pad(q, k, n_head):
+    # q: (n_batch, n_seq_q)
+    # k: (n_batch, n_seq_k)
+
+    # mask: (n_batch, n_seq_q, n_seq_k)
     mask = k.eq(0).unsqueeze(1).repeat(1, q.size(1), 1)
+
+    # mask: (n_batch, n_head, n_seq_q, n_seq_k)
     mask = mask.unsqueeze(1).repeat(1, n_head, 1, 1)
+
     return mask
 
 
 def mask_subsequent(q, k, n_head):
+    # q: (n_batch, n_seq_q)
+    # k: (n_batch, n_seq_k)
+
+    # mask_pad, mask_tri: (n_batch, n_seq_q, n_seq_k)
     mask_pad = k.eq(0).unsqueeze(1).repeat(1, q.size(1), 1)
     mask_tri = torch.ones_like(mask_pad).triu(diagonal=1)
     mask = mask_pad | mask_tri
+
+    # mask: (n_batch, n_head, n_seq_q, n_seq_k)
     mask = mask.unsqueeze(1).repeat(1, n_head, 1, 1)
+
     return mask
 
 
@@ -29,6 +43,9 @@ class Transformer(nn.Module):
         self.decoder = Decoder(config)
 
     def forward(self, x_enc, x_dec):
+        # x_enc: (n_batch, n_seq_enc)
+        # x_dec: (n_batch, n_seq_dec)
+
         # mask_enc_self: (n_batch, n_head, n_seq_enc, n_seq_enc)
         mask_enc_self = mask_pad(x_enc, x_enc, self.n_head)
 

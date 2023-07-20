@@ -13,13 +13,15 @@ class ScaledDotProductAttention(nn.Module):
         # q: (n_batch, n_head, n_seq_q, n_emb // n_head)
         # k: (n_batch, n_head, n_seq_k, n_emb // n_head)
         # v: (n_batch, n_head, n_seq_v, n_emb // n_head)
+        # mask: (n_batch, n_head, n_seq_q, n_seq_k)
 
         # score: (n_batch, n_head, n_seq_q, n_seq_k)
         score = torch.matmul(q, k.transpose(-1, -2)) / self.scale
         if mask is not None:
             score = score.masked_fill(mask, -1e9)
-        
         score = self.softmax(score)
+
+        # context: (n_batch, n_head, n_seq_q, n_emb // n_head)
         context = torch.matmul(score, v)
 
         return context
@@ -41,7 +43,6 @@ class MultiHeadAttention(nn.Module):
         # q: (n_batch, n_seq_q, n_emb)
         # k: (n_batch, n_seq_k, n_emb)
         # v: (n_batch, n_seq_v, n_emb)
-
         q = self.w_q(q)
         k = self.w_k(k)
         v = self.w_v(v)
@@ -56,7 +57,6 @@ class MultiHeadAttention(nn.Module):
         # context: (n_batch, n_head, n_seq_q, d_emb // n_head)
         context = self.attention(q, k, v, mask)
 
-        # SUSPICOUS
         # context: (n_batch, n_seq_q, d_emb)
         context = context.transpose(1, 2).contiguous().view(context.size(0), context.size(2), self.d_emb)
         context = self.w_o(context)
