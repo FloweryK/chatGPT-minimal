@@ -27,7 +27,7 @@ class DecoderLayer(nn.Module):
 
         x_dec = self.norm1(x_dec + self.dropout1(self.attention_self(x_dec, x_dec, x_dec, mask_dec_self)))
         x_dec = self.norm2(x_dec + self.dropout2(self.attention_enc(x_dec, y_enc, y_enc, mask_dec_enc)))
-        x_dec = self.norm2(x_dec + self.dropout3(self.feedforward(x_dec)))
+        x_dec = self.norm3(x_dec + self.dropout3(self.feedforward(x_dec)))
 
         return x_dec
 
