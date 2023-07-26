@@ -1,3 +1,4 @@
+import os
 import argparse
 import torch
 import sentencepiece as spm
@@ -10,6 +11,7 @@ if __name__ == "__main__":
     # argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--inputs', dest='inputs', nargs='+', required=True)
+    parser.add_argument('-e', '--epoch', dest='epoch', required=True)
     args = parser.parse_args()
 
     # vocab
@@ -19,7 +21,7 @@ if __name__ == "__main__":
     # model
     model = Classifier(config)
     model = model.to(config.device)
-    model.load_state_dict(torch.load(PATH_WEIGHT, map_location=config.device))
+    model.load_state_dict(torch.load(os.path.join(PATH_WEIGHT, f'model_{args.epoch}.pt'), map_location=config.device))
 
     # inputs
     x_enc = torch.tensor([[BOS] + vocab.EncodeAsIds(args.inputs[0]) + [EOS]]).to(config.device)
