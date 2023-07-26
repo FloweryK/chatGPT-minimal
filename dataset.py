@@ -155,6 +155,9 @@ class KakaotalkDataset(Dataset):
             t = f'{hour}:{minute}'
 
             return speaker, t, chat
+    
+        def is_emoticon(chat):
+            return chat == '이모티콘'
         
         # make qa data
         data = {}
@@ -171,6 +174,9 @@ class KakaotalkDataset(Dataset):
                     date = extract_date(line)
                 elif is_chat(line):
                     speaker, t, chat = extract_chat(line)
+
+                    if is_emoticon(chat):
+                        continue
                     
                     if speaker not in speaker_ids:
                         speaker_ids[speaker] = len(speaker_ids)
