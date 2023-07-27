@@ -1,5 +1,5 @@
 # model
-n_vocab = 8000+7
+n_vocab = 30000+7
 n_seq = 1000
 n_layer = 6
 n_head = 8
@@ -10,6 +10,7 @@ scale = (512//8)**(1/2)
 
 # dataset
 rate_split = 0.9
+target_speaker = '유민상'
 
 # training
 n_epoch = 100
