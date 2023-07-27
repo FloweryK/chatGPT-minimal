@@ -3,9 +3,10 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import config
 from constant import *
-from dataset import KakaotalkDataset, collate_fn
+from dataset import KakaotalkMobileDataset, collate_fn
 from model.classifier import Classifier
 from trainer import Trainer
+from evaluator import Evaluator
 
 
 class AdamWarmup:
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     vocab.Load(PATH_VOCAB)
 
     # dataset
-    dataset = KakaotalkDataset(vocab, PATH_DATA, target_speaker=config.target_speaker)
+    dataset = KakaotalkMobileDataset(vocab, PATH_DATA, target_speaker=config.target_speaker)
     train_size = int(config.rate_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 

@@ -31,10 +31,8 @@ def get_bleu(reference, candidate, N=4):
         
 
 class Evaluator:
-    def __init__(self, model, criterion, optimizer, vocab):
+    def __init__(self, model, vocab):
         self.model = model
-        self.criterion = criterion
-        self.optimizer = optimizer
         self.vocab = vocab
         self.writer = SummaryWriter()
     

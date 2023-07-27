@@ -44,7 +44,6 @@ class Chatbot:
         return question, question_decode, answer, answer_decode
 
 
-
 if __name__ == "__main__":
     # argparse
     parser = argparse.ArgumentParser()
