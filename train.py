@@ -51,7 +51,7 @@ if __name__ == '__main__':
     print("model parameters:", sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     # trainer 
-    criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD)
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
     adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
     optimizer = AdamWarmup(adam, config.d_emb, config.warmup_steps)
     trainer = Trainer(model, criterion, optimizer, vocab)

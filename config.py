@@ -17,3 +17,4 @@ n_batch = 8
 device = 'cuda'
 lr = 0
 warmup_steps = 4000
+label_smoothing = 0.1
