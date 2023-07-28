@@ -58,10 +58,13 @@ class Trainer:
                 # get accuracy
                 match += get_match(x_dec_target, predict)
                 accuracy = np.mean(match) if match else 0
+
+                # get memory
+                memory = torch.cuda.memory_allocated(0) / 1024**3 if torch.cuda.is_available() else 0
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr:.8f} | Acc: {accuracy:.3f}")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.3f} ({np.mean(losses):.3f}) | lr: {self.optimizer.lr:.8f} | Acc: {accuracy:.3f} | {memory:.2f}GB")
 
             # save model
             if train and ((epoch + 1) % 10 == 0):
