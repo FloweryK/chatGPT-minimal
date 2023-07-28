@@ -8,18 +8,18 @@ from model.classifier import Classifier
 
 
 class Chatbot:
-    def __init__(self, config, path_vocab, path_weight):
+    def __init__(self, config):
         # config
         self.config = config
 
         # vocab
         self.vocab = spm.SentencePieceProcessor()
-        self.vocab.load(path_vocab)
+        self.vocab.load(config.path_vocab)
 
         # model
         self.model = Classifier(config)
         self.model = self.model.to(config.device)
-        self.model.load_state_dict(torch.load(path_weight, map_location=config.device))
+        self.model.load_state_dict(torch.load(os.path.join(config.path_weight, f'model_{args.epoch}.pt'), map_location=config.device))
         self.model.eval()
     
     def chat(self, text, n_max=50):
@@ -51,15 +51,11 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--epoch', required=True)
     args = parser.parse_args()
 
-    text = args.text
-    path_vocab = PATH_VOCAB
-    path_weight = os.path.join(PATH_WEIGHT, f'model_{args.epoch}.pt')
-
     # chatbot
-    chatbot = Chatbot(config, path_vocab, path_weight)
+    chatbot = Chatbot(config)
 
     # chat
-    question, question_decode, answer, answer_decode = chatbot.chat(text)
+    question, question_decode, answer, answer_decode = chatbot.chat(args.text)
     print(question)
     print(question_decode)
     print(answer)

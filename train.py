@@ -3,10 +3,22 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import config
 from constant import *
-from dataset import KakaotalkMobileDataset, collate_fn
+from dataset.kakaotalk import KakaotalkDataset
 from model.classifier import Classifier
 from trainer import Trainer
-from evaluator import Evaluator
+
+
+def collate_fn(inputs):
+    x_enc, x_dec = list(zip(*inputs))
+
+    x_enc = torch.nn.utils.rnn.pad_sequence(x_enc, batch_first=True, padding_value=PAD)
+    x_dec = torch.nn.utils.rnn.pad_sequence(x_dec, batch_first=True, padding_value=PAD)
+    
+    return [x_enc, x_dec]
+
+
+def get_model_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 class AdamWarmup:
@@ -35,10 +47,10 @@ class AdamWarmup:
 if __name__ == '__main__':
     # load vocab
     vocab = spm.SentencePieceProcessor()
-    vocab.Load(PATH_VOCAB)
+    vocab.Load(config.path_vocab)
 
     # dataset
-    dataset = KakaotalkMobileDataset(vocab, PATH_DATA, target_speaker=config.target_speaker)
+    dataset = KakaotalkDataset(vocab, config)
     train_size = int(config.rate_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 
@@ -49,12 +61,14 @@ if __name__ == '__main__':
     # model
     model = Classifier(config)
     model = model.to(config.device)
-    print("model parameters:", sum(p.numel() for p in model.parameters() if p.requires_grad))
+    print("model parameters:", get_model_parameters(model))
 
-    # trainer 
+    # criterion and optimizer
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
     adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
     optimizer = AdamWarmup(adam, config.d_emb, config.warmup_steps)
+
+    # trainer
     trainer = Trainer(model, criterion, optimizer, vocab)
 
     # train

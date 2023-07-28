@@ -13,9 +13,14 @@ rate_split = 0.9
 target_speaker = '유민상'
 
 # training
+device = 'cpu'
 n_epoch = 100
 n_batch = 8
-device = 'cuda'
 lr = 0
 warmup_steps = 4000
 label_smoothing = 0.1
+
+# path
+path_vocab = 'src/vocab/kakaotalk_pc_30000.model'
+path_data = 'src/dataset/kakaotalk/kakaotalk_pc.txt'
+path_weight = 'weights/'
