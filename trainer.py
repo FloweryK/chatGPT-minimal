@@ -22,7 +22,7 @@ class Trainer:
         self.vocab = vocab
         self.writer = SummaryWriter()
     
-    def run_epoch(self, epoch, dataloader, device, train=True):
+    def run_epoch(self, epoch, dataloader, device, train=True, n_accum=1):
         losses = []
         match = []
 
@@ -32,7 +32,7 @@ class Trainer:
             self.model.eval()
 
         with tqdm(total=len(dataloader), desc=f"{'train' if train else 'test '} {epoch}") as pbar:
-            for data in dataloader:
+            for i, data in enumerate(dataloader):
                 # load input, label
                 x_enc, x_dec = (x.to(device) for x in  data)
                 x_dec_input = x_dec[:, :-1]
@@ -50,7 +50,10 @@ class Trainer:
                 # update model
                 if train:
                     loss.backward()
-                    self.optimizer.step()    
+
+                    # gradient accumulation
+                    if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
+                        self.optimizer.step()    
 
                 # extract logits from predict
                 predict = torch.argmax(predict, dim=1)
