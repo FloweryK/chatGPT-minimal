@@ -62,7 +62,7 @@ class Trainer:
                 
                 # perf counter: end
                 t_end = time.perf_counter()
-                times.append(1000 * (t_end - t_start))
+                times.append(t_end - t_start)
 
                 # extract logits from predict
                 predict = torch.argmax(predict, dim=1)
@@ -77,7 +77,7 @@ class Trainer:
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | {memory:.2f}GB | {np.mean(times):.0f}ms")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
 
             # save model
             if train and ((epoch + 1) % 5 == 0):
@@ -87,6 +87,6 @@ class Trainer:
             self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)
             self.writer.add_scalar(f'Train/Acc' if train else 'Test/Acc', accuracy, epoch)
             self.writer.add_scalar(f'Train/memory' if train else 'Test/memory', memory, epoch)
-            self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times), epoch)
-            self.writer.add_scalar(f'Train/time_epoch' if train else 'Test/time_epoch', np.sum(times) / 1000, epoch)
+            self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times) * 1000, epoch)
+            self.writer.add_scalar(f'Train/time_epoch' if train else 'Test/time_epoch', np.sum(times), epoch)
 
