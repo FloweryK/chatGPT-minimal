@@ -8,18 +8,18 @@ from model.classifier import Classifier
 
 
 class Chatbot:
-    def __init__(self, config):
+    def __init__(self, config, path_vocab, path_weight):
         # config
         self.config = config
 
         # vocab
         self.vocab = spm.SentencePieceProcessor()
-        self.vocab.load(config.path_vocab)
+        self.vocab.load(path_vocab)
 
         # model
         self.model = Classifier(config)
         self.model = self.model.to(config.device)
-        self.model.load_state_dict(torch.load(os.path.join(config.path_weight, f'model_{args.epoch}.pt'), map_location=config.device))
+        self.model.load_state_dict(torch.load(path_weight, map_location=config.device))
         self.model.eval()
     
     def chat(self, text, n_max=50):
@@ -47,16 +47,21 @@ class Chatbot:
 if __name__ == "__main__":
     # argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--text', required=True)
-    parser.add_argument('-e', '--epoch', required=True)
+    parser.add_argument('-w', '--weight', required=True)
+    parser.add_argument('-v', '--vocab', required=True)
     args = parser.parse_args()
+    
+    path_vocab = args.vocab
+    path_weight = args.weight
 
     # chatbot
-    chatbot = Chatbot(config)
+    chatbot = Chatbot(config, path_vocab, path_weight)
 
     # chat
-    question, question_decode, answer, answer_decode = chatbot.chat(args.text)
-    print(question)
-    print(question_decode)
-    print(answer)
-    print(answer_decode)
+    while True:
+        text = input('text: ')
+        question, question_decode, answer, answer_decode = chatbot.chat(text)
+        print(question)
+        print(question_decode)
+        print(answer)
+        print(answer_decode)

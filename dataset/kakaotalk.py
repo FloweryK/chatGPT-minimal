@@ -5,18 +5,18 @@ from constant import *
 
 
 class KakaotalkDataset(Dataset):
-    def __init__(self, vocab, config):
+    def __init__(self, vocab, path_data, target_speaker):
         super().__init__()
 
         # load vocab
         self.vocab = vocab
         
         # data
-        self.data = self.load_data(config.path_data)
+        self.data = self.load_data(path_data)
         self.ids = [value['chat_id'] for value in self.data.values() if value['reply_chat_id']]
 
         # filter target speaker
-        self.ids = [chat_id for chat_id in self.ids if self.data[chat_id]['speaker_name'] == config.target_speaker]
+        self.ids = [chat_id for chat_id in self.ids if self.data[chat_id]['speaker_name'] == target_speaker]
         self.len = len(self.ids)
     
     def load_data(self, path_data):
