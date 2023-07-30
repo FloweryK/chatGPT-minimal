@@ -1,4 +1,5 @@
 import time
+from collections import Counter
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -14,6 +15,34 @@ def get_match(x_dec_target, predict):
     return correct
 
 
+def get_bleu(reference, candidate, N=4):
+    mask = ~reference.eq(PAD)
+    reference = reference[mask].tolist()
+    candidate = candidate[mask].tolist()
+
+    ps = []
+
+    for n in range(1, min(N+1, len(candidate) + 1)):
+        ngram_r = Counter([tuple(reference[i:i+n]) for i in range(len(reference)-n+1)])
+        ngram_c = Counter([tuple(candidate[i:i+n]) for i in range(len(candidate)-n+1)])
+
+        # modified precision
+        p = sum((ngram_r & ngram_c).values()) / sum(ngram_c.values())
+
+        # weight
+        w = 1 / N
+
+        ps.append(p ** w)
+    
+    # brevity penalty
+    bp = min(1, np.exp(1- len(reference) / (len(candidate) + 1e-10)))
+
+    bleu = bp * np.prod(ps)
+    bleu *= 100
+
+    return bleu
+
+
 class Trainer:
     def __init__(self, model, criterion, optimizer, vocab, writer):
         self.model = model
@@ -26,6 +55,7 @@ class Trainer:
         losses = []
         match = []
         times = []
+        bleus = []
 
         if train:
             self.model.train()
@@ -69,7 +99,11 @@ class Trainer:
                 
                 # get accuracy
                 match += get_match(x_dec_target, predict)
-                accuracy = np.mean(match) if match else 0
+                accuracy = np.mean(match)
+
+                # get bleu
+                bleus += [get_bleu(ref, cand) for ref, cand in zip(x_dec_target, predict)]
+                bleu = np.mean(bleus)
 
                 # get memory
                 mem_info = torch.cuda.mem_get_info()
@@ -77,7 +111,7 @@ class Trainer:
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | bleu: {bleu:.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
 
             # save model
             if train and ((epoch + 1) % 5 == 0):
@@ -85,6 +119,7 @@ class Trainer:
             
             # tensorboard
             self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)
+            self.writer.add_scalar(f'Train/bleu' if train else 'Test/bleu', bleu, epoch)
             self.writer.add_scalar(f'Train/Acc' if train else 'Test/Acc', accuracy, epoch)
             self.writer.add_scalar(f'Train/memory' if train else 'Test/memory', memory, epoch)
             self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times) * 1000, epoch)
