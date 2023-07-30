@@ -42,15 +42,14 @@ class Trainer:
                 x_dec_input = x_dec[:, :-1]
                 x_dec_target = x_dec[:, 1:]
 
-                # predict
-                if train:
-                    self.optimizer.zero_grad()
-                predict = self.model(x_enc, x_dec_input)
+                # autocast
+                with torch.autocast(device_type=device, dtype=torch.float16):
+                    predict = self.model(x_enc, x_dec_input)
 
-                # loss
-                loss = self.criterion(predict, x_dec_target)
-                losses.append(loss.item())
-                loss = loss / n_accum
+                    # loss
+                    loss = self.criterion(predict, x_dec_target)
+                    losses.append(loss.item())
+                    loss = loss / n_accum
 
                 # update model
                 if train:
@@ -59,6 +58,7 @@ class Trainer:
                     # gradient accumulation
                     if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
                         self.optimizer.step()
+                        self.optimizer.zero_grad()
                 
                 # perf counter: end
                 t_end = time.perf_counter()

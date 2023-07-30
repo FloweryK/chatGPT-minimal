@@ -18,7 +18,7 @@ class ScaledDotProductAttention(nn.Module):
         # score: (n_batch, n_head, n_seq_q, n_seq_k)
         score = torch.matmul(q, k.transpose(-1, -2)) / self.scale
         if mask is not None:
-            score = score.masked_fill(mask, -1e9)
+            score = score.masked_fill(mask, -1e4)
         score = self.softmax(score)
 
         # context: (n_batch, n_head, n_seq_q, n_emb // n_head)
