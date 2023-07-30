@@ -44,7 +44,7 @@ class Trainer:
 
                 # predict
                 if train:
-                    self.optimizer.optimizer.zero_grad()
+                    self.optimizer.zero_grad()
                 predict = self.model(x_enc, x_dec_input)
 
                 # loss

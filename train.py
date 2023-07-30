@@ -29,6 +29,9 @@ class AdamWarmup:
         self.warmup_steps = warmup_steps
         self.current_step = 0
         self.lr = 0
+    
+    def zero_grad(self):
+        self.optimizer.zero_grad()
         
     def get_lr(self):
         return self.model_size ** (-0.5) * min(self.current_step ** (-0.5), self.current_step * self.warmup_steps ** (-1.5))
