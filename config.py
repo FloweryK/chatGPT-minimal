@@ -6,7 +6,8 @@ n_head = 8
 d_emb = 512
 d_hidden = 2048
 dropout = 0.1
-scale = (512//8)**(1/2)
+scale = (d_emb // n_head)**(1/2)
+assert d_emb % n_head == 0
 
 # dataset
 rate_split = 0.9
@@ -25,4 +26,4 @@ label_smoothing = 0.1
 path_vocab = 'src/vocab/kakaotalk_pc_30000.model'
 path_data = 'src/dataset/kakaotalk/kakaotalk_pc.txt'
 path_weight = 'weights/'
-path_runs = f'runs/batch={n_batch}_accum={n_accum}_ls={label_smoothing}'
+path_runs = f'runs/batch={n_batch}_accum={n_accum}_ls={label_smoothing}_demb={d_emb}'

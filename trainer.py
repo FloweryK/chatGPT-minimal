@@ -80,7 +80,7 @@ class Trainer:
                 pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | {memory:.2f}GB | {np.mean(times):.0f}ms")
 
             # save model
-            if train and ((epoch + 1) % 10 == 0):
+            if train and ((epoch + 1) % 5 == 0):
                 torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
             
             # tensorboard
