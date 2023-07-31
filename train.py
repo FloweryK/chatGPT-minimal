@@ -45,11 +45,13 @@ if __name__ == '__main__':
     # argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data', required=True)
+    parser.add_argument('-v', '--vocab', required=False)
     args = parser.parse_args()
     path_data = args.data
+    path_vocab = args.vocab
 
     # dataset
-    dataset = MovieCorpusDataset(path_data, config.n_vocab)
+    dataset = MovieCorpusDataset(config.n_vocab, path_data, path_vocab)
     train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 

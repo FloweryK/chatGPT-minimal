@@ -1,3 +1,4 @@
+import os
 import sentencepiece as spm
 import torch
 from torch.utils.data import Dataset
@@ -5,14 +6,16 @@ from constant import *
 
 
 class ChatDatasetBase(Dataset):
-    def __init__(self, path_data, n_vocab):
+    def __init__(self, n_vocab, path_data, path_vocab):
         super().__init__()
+        if path_vocab is None:
+            path_vocab = 'src/vocab/tmp.model'
     
         # load and encode data
         self.data = {}
-        self.vocab = None
+        self.vocab = spm.SentencePieceProcessor()
         self.load_data(path_data)
-        self.load_vocab(n_vocab)
+        self.load_vocab(n_vocab, path_vocab)
         self.encode_data()
 
         # filter answers with no question
@@ -22,33 +25,36 @@ class ChatDatasetBase(Dataset):
     def load_data(self):
         raise NotImplementedError()
     
-    def load_vocab(self, n_vocab):
-        # create a tmp txt file for sentencepiece training
-        with open('tmp.txt', 'w', encoding='utf8') as f:
-            for chat in self.data.values():
-                f.write(' '.join(chat['text']) + '\n')
-        
-        # train sentencepiece
-        spm.SentencePieceTrainer.train(
-            input='tmp.txt',
-            vocab_size=n_vocab,
-            model_prefix='tmp',
-            model_type='bpe',
-            max_sentence_length=9999,
-            pad_id=PAD,
-            pad_piece='[PAD]',
-            unk_id=UNK,
-            unk_piece='[UNK]',
-            bos_id=BOS,
-            bos_piece='[BOS]',
-            eos_id=EOS,
-            eos_piece='[EOS]',
-            user_defined_symbols=['[SEP]', '[CLS]', '[MASK]']
-        )
+    def load_vocab(self, n_vocab, path_vocab):
+        if path_vocab and (not os.path.exists(path_vocab)):
+            path_prefix = path_vocab[:-6] 
+            path_txt = path_prefix + '.txt'
+
+            # create a tmp txt file for sentencepiece training
+            with open(path_txt, 'w', encoding='utf8') as f:
+                for chat in self.data.values():
+                    f.write(' '.join(chat['text']) + '\n')
+            
+            # train sentencepiece
+            spm.SentencePieceTrainer.train(
+                input=path_txt,
+                vocab_size=n_vocab,
+                model_prefix=path_prefix,
+                model_type='bpe',
+                max_sentence_length=9999,
+                pad_id=PAD,
+                pad_piece='[PAD]',
+                unk_id=UNK,
+                unk_piece='[UNK]',
+                bos_id=BOS,
+                bos_piece='[BOS]',
+                eos_id=EOS,
+                eos_piece='[EOS]',
+                user_defined_symbols=['[SEP]', '[CLS]', '[MASK]']
+            )
 
         # load vocab
-        self.vocab = spm.SentencePieceProcessor()
-        self.vocab.Load('tmp.model')
+        self.vocab.Load(path_vocab)
 
     def encode_data(self):
         for chat_id in self.data:
