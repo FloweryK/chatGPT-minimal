@@ -44,11 +44,10 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, optimizer, vocab, writer):
+    def __init__(self, model, criterion, optimizer, writer):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
-        self.vocab = vocab
         self.writer = writer
     
     def run_epoch(self, epoch, dataloader, device, train=True, n_accum=1):

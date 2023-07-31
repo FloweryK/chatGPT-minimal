@@ -3,6 +3,7 @@ import sentencepiece as spm
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
+
 import config
 from constant import *
 from dataset.kakaotalk_mobile import KakaotalkMobileDataset
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     writer = SummaryWriter()
 
     # trainer
-    trainer = Trainer(model, criterion, optimizer, vocab, writer)
+    trainer = Trainer(model, criterion, optimizer, writer)
 
     # train
     for epoch in range(config.n_epoch):
