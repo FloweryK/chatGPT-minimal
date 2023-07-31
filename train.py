@@ -1,26 +1,14 @@
 import argparse
-import sentencepiece as spm
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 
 import config
 from constant import *
-from dataset.movie_corpus_dataset import MovieCorpusDataset
-from dataset.kakaotalk import KakaotalkDataset
-from dataset.kakaotalk_mobile import KakaotalkMobileDataset
-from dataset.korean_qa_dataset import KoreanQADataset
+from dataset.base import collate_fn
+from dataset.movie_corpus import MovieCorpusDataset
 from model.classifier import Classifier
 from trainer import Trainer
-
-
-def collate_fn(inputs):
-    x_enc, x_dec = list(zip(*inputs))
-
-    x_enc = torch.nn.utils.rnn.pad_sequence(x_enc, batch_first=True, padding_value=PAD)
-    x_dec = torch.nn.utils.rnn.pad_sequence(x_dec, batch_first=True, padding_value=PAD)
-    
-    return [x_enc, x_dec]
 
 
 def get_model_parameters(model):
@@ -58,8 +46,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data', required=True)
     args = parser.parse_args()
-
-    # paths
     path_data = args.data
 
     # dataset
@@ -80,6 +66,8 @@ if __name__ == '__main__':
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
     adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
     optimizer = AdamWarmup(adam, config.d_emb, config.warmup_steps)
+
+    # writer
     writer = SummaryWriter()
 
     # trainer

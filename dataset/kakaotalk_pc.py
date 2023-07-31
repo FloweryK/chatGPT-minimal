@@ -2,22 +2,34 @@ import re
 from dataset.base import ChatDatasetBase
 
 
+def is_date(line):
+    pattern = '---------------'
+    return line.startswith(pattern)
+
+def extract_date(line):
+    pattern = '---------------'
+    line = line.split(pattern)[1][1:-1]
+    return '-'.join([match.zfill(2) for match in re.findall(r"\d+", line)])
+
 def is_chat(line):
-    pattern = r"^\d{4}년 \d{1,2}월 \d{1,2}일 (?:오전|오후) \d{1,2}:\d{2},"
-    return bool(re.search(pattern, line))
+    pattern = r"^\[(.*?)\].*?\[(.*?)\]"
+    matches = re.findall(pattern, line)
+    return bool(matches)
 
 def extract_chat(line):
-    # extract date
-    pattern = r"^\d{4}년 \d{1,2}월 \d{1,2}일 (?:오전|오후) \d{1,2}:\d{2},"
-    date = re.findall(pattern, line)[0][:-1]
-    line = re.sub(pattern, '', line)[1:-1]
+    pattern = r"^\[(.*?)\].*?\[(.*?)\]"
+    speaker, t = re.findall(pattern, line)[0]
+    chat = re.sub(pattern, '', line)[1:-1]
 
-    # extract speaker and text
-    pattern = r".+ : "
-    speaker = re.findall(pattern, line)[0][:-3]
-    text = re.sub(pattern, '', line)
+    # convert t to proper format
+    is_afternoon = t[:2] == '오후'
+    hour, minute = t[3:].split(':')
+    
+    hour = int(hour) % 12 + int(is_afternoon) * 12
+    hour = str(hour).zfill(2)
+    t = f'{hour}:{minute}'
 
-    return speaker, date, text
+    return speaker, t, chat
 
 def is_emoticon(text):
     return text == '이모티콘'
@@ -26,7 +38,7 @@ def is_picture(text):
     return text == '사진'
 
 
-class KakaotalkMobileDataset(ChatDatasetBase):
+class KakaotalkPCDataset(ChatDatasetBase):
     def load_data(self, path_data):
         with open(path_data, 'r', encoding="utf8") as f:
             i_prev = None
@@ -37,7 +49,7 @@ class KakaotalkMobileDataset(ChatDatasetBase):
                     continue
 
                 # extract chat
-                speaker, date, text = extract_chat(line)
+                speaker, t, text = extract_chat(line)
 
                 if is_emoticon(text):
                     continue
@@ -51,7 +63,7 @@ class KakaotalkMobileDataset(ChatDatasetBase):
                         'speaker_name': speaker,
                         'text': [text],
                         'question_id': i_prev,
-                        'question_speaker_name': speaker_prev,
+                        'question__spekaer_name': speaker_prev,
                     }
                     i_prev = i
                 else:

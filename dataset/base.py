@@ -1,14 +1,13 @@
-import json
 import sentencepiece as spm
 import torch
 from torch.utils.data import Dataset
 from constant import *
 
 
-class MovieCorpusDataset(Dataset):
+class ChatDatasetBase(Dataset):
     def __init__(self, path_data, n_vocab):
         super().__init__()
-
+    
         # load and encode data
         self.data = {}
         self.vocab = None
@@ -20,29 +19,16 @@ class MovieCorpusDataset(Dataset):
         self.ids = [value['id'] for value in self.data.values() if value['question_id']]
         self.len = len(self.ids)
     
-    def load_data(self, path_data):
-        with open(path_data, 'r', encoding='iso-8859-1') as f:
-            for line in f:
-                # load line as json
-                obj = json.loads(line)
-
-                # make converstaion data
-                text = obj['text'].strip()
-                answer_id = obj['id']
-                question_id = obj['reply-to']
-
-                self.data[answer_id] = {
-                    'id': answer_id,
-                    'text': [text],
-                    'question_id': question_id,
-                }
-
+    def load_data(self):
+        raise NotImplementedError()
+    
     def load_vocab(self, n_vocab):
-        # train sentencepiece
+        # create a tmp txt file for sentencepiece training
         with open('tmp.txt', 'w', encoding='utf8') as f:
             for chat in self.data.values():
                 f.write(' '.join(chat['text']) + '\n')
         
+        # train sentencepiece
         spm.SentencePieceTrainer.train(
             input='tmp.txt',
             vocab_size=n_vocab,
@@ -63,9 +49,8 @@ class MovieCorpusDataset(Dataset):
         # load vocab
         self.vocab = spm.SentencePieceProcessor()
         self.vocab.Load('tmp.model')
-    
+
     def encode_data(self):
-        # encode
         for chat_id in self.data:
             text = self.data[chat_id]['text']
             text_encode = [BOS]
@@ -73,7 +58,7 @@ class MovieCorpusDataset(Dataset):
                 text_encode.extend(self.vocab.EncodeAsIds(t) + [SEP])
             text_encode[-1] = EOS
             self.data[chat_id]['text_encode'] = text_encode
-                
+    
     def __len__(self):
         return self.len
 
@@ -88,3 +73,12 @@ class MovieCorpusDataset(Dataset):
             torch.tensor(question['text_encode']),
             torch.tensor(answer['text_encode']),
         )
+
+
+def collate_fn(inputs):
+    x_enc, x_dec = list(zip(*inputs))
+
+    x_enc = torch.nn.utils.rnn.pad_sequence(x_enc, batch_first=True, padding_value=PAD)
+    x_dec = torch.nn.utils.rnn.pad_sequence(x_dec, batch_first=True, padding_value=PAD)
+    
+    return [x_enc, x_dec]
