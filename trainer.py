@@ -73,13 +73,12 @@ class Trainer:
                 x_dec_target = x_dec[:, 1:]
 
                 # autocast
-                with torch.autocast(device_type=device, dtype=torch.float16):
-                    predict = self.model(x_enc, x_dec_input)
+                predict = self.model(x_enc, x_dec_input)
 
-                    # loss
-                    loss = self.criterion(predict, x_dec_target)
-                    losses.append(loss.item())
-                    loss = loss / n_accum
+                # loss
+                loss = self.criterion(predict, x_dec_target)
+                losses.append(loss.item())
+                loss = loss / n_accum
 
                 # update model
                 if train:
@@ -106,8 +105,8 @@ class Trainer:
                 bleu = np.mean(bleus)
 
                 # get memory
-                mem_info = torch.cuda.mem_get_info()
-                memory = (mem_info[1] - mem_info[0]) / 1024**3 if torch.cuda.is_available() else 0
+                mem_info = torch.cuda.mem_get_info()  if torch.cuda.is_available() else [0, 0]
+                memory = (mem_info[1] - mem_info[0]) / 1024**3
             
                 # update progress bar
                 pbar.update(1)
