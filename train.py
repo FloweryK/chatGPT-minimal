@@ -55,20 +55,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--vocab', required=True)
     parser.add_argument('-d', '--data', required=True)
-    parser.add_argument('-s', '--speaker', required=True)
     args = parser.parse_args()
 
     # paths
     path_vocab = args.vocab
     path_data = args.data
-    target_speaker = args.speaker
 
     # load vocab
     vocab = spm.SentencePieceProcessor()
     vocab.Load(path_vocab)
 
     # dataset
-    dataset = KakaotalkMobileDataset(vocab, path_data, target_speaker)
+    dataset = KakaotalkMobileDataset(vocab, path_data)
     train_size = int(config.rate_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 

@@ -5,7 +5,7 @@ from constant import *
 
 
 class KakaotalkMobileDataset(Dataset):
-    def __init__(self, vocab, path_data, target_speaker):
+    def __init__(self, vocab, path_data):
         super().__init__()
 
         # load vocab
@@ -14,9 +14,6 @@ class KakaotalkMobileDataset(Dataset):
         # data
         self.data = self.load_data(path_data)
         self.ids = [value['chat_id'] for value in self.data.values() if value['reply_chat_id']]
-
-        # filter target speaker
-        self.ids = [chat_id for chat_id in self.ids if self.data[chat_id]['speaker_name'] == target_speaker]
         self.len = len(self.ids)
     
     def load_data(self, path_data):
