@@ -6,7 +6,10 @@ from torch.utils.tensorboard import SummaryWriter
 
 import config
 from constant import *
+from dataset.movie_corpus_dataset import MovieCorpusDataset
+from dataset.kakaotalk import KakaotalkDataset
 from dataset.kakaotalk_mobile import KakaotalkMobileDataset
+from dataset.korean_qa_dataset import KoreanQADataset
 from model.classifier import Classifier
 from trainer import Trainer
 
@@ -53,21 +56,15 @@ class AdamWarmup:
 if __name__ == '__main__':
     # argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--vocab', required=True)
     parser.add_argument('-d', '--data', required=True)
     args = parser.parse_args()
 
     # paths
-    path_vocab = args.vocab
     path_data = args.data
 
-    # load vocab
-    vocab = spm.SentencePieceProcessor()
-    vocab.Load(path_vocab)
-
     # dataset
-    dataset = KakaotalkMobileDataset(vocab, path_data)
-    train_size = int(config.rate_split * len(dataset))
+    dataset = MovieCorpusDataset(path_data, config.n_vocab)
+    train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 
     # dataloader

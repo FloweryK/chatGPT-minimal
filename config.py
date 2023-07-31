@@ -1,5 +1,5 @@
 # model
-n_vocab = 30000+7
+n_vocab = 8000+7
 n_seq = 1000
 n_layer = 6
 n_head = 8
@@ -10,10 +10,10 @@ scale = (d_emb // n_head)**(1/2)
 assert d_emb % n_head == 0
 
 # dataset
-rate_split = 0.9
+r_split = 0.9
 
 # training
-device = 'cuda'
+device = 'cpu'
 n_epoch = 50
 n_batch = 16
 n_accum = 1
