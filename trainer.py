@@ -6,15 +6,6 @@ from tqdm import tqdm
 from constant import *
 
 
-def get_match(x_dec_target, predict):
-    target_flatten = x_dec_target.flatten()
-    predict_flatten = predict.flatten()
-    mask = ~target_flatten.eq(PAD)
-
-    correct = torch.eq(predict_flatten[mask], target_flatten[mask]).detach().cpu().tolist()
-    return correct
-
-
 def get_bleu(reference, candidate, N=4):
     mask = ~reference.eq(PAD)
     reference = reference[mask].tolist()
@@ -52,7 +43,6 @@ class Trainer:
     
     def run_epoch(self, epoch, dataloader, device, train=True, n_accum=1):
         losses = []
-        match = []
         times = []
         bleus = []
 
@@ -94,10 +84,6 @@ class Trainer:
 
                 # extract logits from predict
                 predict = torch.argmax(predict, dim=1)
-                
-                # get accuracy
-                match += get_match(x_dec_target, predict)
-                accuracy = np.mean(match)
 
                 # get bleu
                 bleus += [get_bleu(ref, cand) for ref, cand in zip(x_dec_target, predict)]
@@ -109,7 +95,7 @@ class Trainer:
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | Acc: {accuracy:.3f} | bleu: {bleu:.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | bleu: {bleu:.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
 
             # save model
             if train and ((epoch + 1) % 5 == 0):
@@ -118,7 +104,6 @@ class Trainer:
             # tensorboard
             self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)
             self.writer.add_scalar(f'Train/bleu' if train else 'Test/bleu', bleu, epoch)
-            self.writer.add_scalar(f'Train/Acc' if train else 'Test/Acc', accuracy, epoch)
             self.writer.add_scalar(f'Train/memory' if train else 'Test/memory', memory, epoch)
             self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times) * 1000, epoch)
             self.writer.add_scalar(f'Train/time_epoch' if train else 'Test/time_epoch', np.sum(times), epoch)
