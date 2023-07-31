@@ -5,3 +5,5 @@ runs/
 src/
 weights/
 archive/
+config.py
+
