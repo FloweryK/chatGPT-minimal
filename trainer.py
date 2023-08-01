@@ -6,12 +6,6 @@ from tqdm import tqdm
 from constant import *
 
 
-def get_gpu_memory():
-    mem_info = torch.cuda.mem_get_info()  if torch.cuda.is_available() else [0, 0]
-    memory = (mem_info[1] - mem_info[0]) / 1024**3
-    return memory
-
-
 def get_bleu(reference, candidate, N=4):
     mask = ~reference.eq(PAD)
     reference = reference[mask].tolist()
@@ -95,7 +89,8 @@ class Trainer:
                 bleus.extend([get_bleu(ref, cand) for ref, cand in zip(x_dec_target, predict)])
 
                 # get memory
-                memory = get_gpu_memory()
+                mem_info = torch.cuda.mem_get_info() if device == 'cuda' else [0, 0]
+                memory = (mem_info[1] - mem_info[0]) / 1024**3
             
                 # update progress bar
                 pbar.update(1)
