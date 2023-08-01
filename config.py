@@ -1,5 +1,5 @@
 # model
-n_vocab = 8000+7
+n_vocab = 30000+7
 n_seq = 1000
 n_layer = 6
 n_head = 8
@@ -13,9 +13,10 @@ assert d_emb % n_head == 0
 r_split = 0.9
 
 # training
-device = 'cpu'
+device = 'cuda'
+use_autocast = False
 n_epoch = 50
-n_batch = 16
+n_batch = 32
 n_accum = 1
 lr = 1e-5
 warmup_steps = 4000

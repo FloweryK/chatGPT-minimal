@@ -1,5 +1,6 @@
 import time
 from collections import Counter
+from contextlib import nullcontext
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -41,7 +42,7 @@ class Trainer:
         self.optimizer = optimizer
         self.writer = writer
     
-    def run_epoch(self, epoch, dataloader, device, train=True, n_accum=1):
+    def run_epoch(self, epoch, dataloader, device, train=True, use_autocast=True, n_accum=1):
         losses = []
         times = []
         bleus = []
@@ -71,12 +72,13 @@ class Trainer:
 
                 # update model
                 if train:
-                    loss.backward()
+                    with torch.autocast(device_type=device, dtype=torch.float16) if (device == "cuda") and use_autocast else nullcontext():
+                        loss.backward()
 
-                    # gradient accumulation
-                    if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
-                        self.optimizer.step()
-                        self.optimizer.zero_grad()
+                        # gradient accumulation
+                        if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
+                            self.optimizer.step()
+                            self.optimizer.zero_grad()
                 
                 # perf counter: end
                 t_end = time.perf_counter()

@@ -77,5 +77,5 @@ if __name__ == '__main__':
 
     # train
     for epoch in range(config.n_epoch):
-        trainer.run_epoch(epoch, trainloader, device=config.device, train=True, n_accum=config.n_accum)
-        trainer.run_epoch(epoch, testloader, device=config.device, train=False, n_accum=config.n_accum)
+        trainer.run_epoch(epoch, trainloader, device=config.device, train=True, use_autocast=config.use_autocast, n_accum=config.n_accum)
+        trainer.run_epoch(epoch, testloader, device=config.device, train=False, use_autocast=config.use_autocast, n_accum=config.n_accum)
