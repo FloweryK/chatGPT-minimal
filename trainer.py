@@ -71,12 +71,12 @@ class Trainer:
                     # loss
                     loss = self.criterion(predict, x_dec_target)
                     losses.append(loss.item())
-                    self.scaler.scale(loss).backward()
 
                     # update model
                     if train:
                         # gradient accumulation
                         if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
+                            self.scaler.scale(loss).backward()
                             self.scaler.step(self.optimizer)
                             self.scaler.update()
 
