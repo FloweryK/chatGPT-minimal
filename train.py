@@ -62,7 +62,7 @@ if __name__ == '__main__':
     scaler = torch.cuda.amp.GradScaler(enabled=config.use_amp)
 
     # writer
-    writer = SummaryWriter()
+    writer = SummaryWriter(log_dir=f'runs/batch={config.n_batch}_accum={config.n_accum}_amp={config.use_amp}_demb={config.d_emb}')
 
     # trainer
     trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
