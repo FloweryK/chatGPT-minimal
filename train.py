@@ -1,5 +1,6 @@
 import argparse
 import torch
+from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 
@@ -15,30 +16,18 @@ def get_model_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
-class AdamWarmup:
-    def __init__(self, optimizer, model_size, warmup_steps):
-        self.optimizer = optimizer
-        self.model_size = model_size
+class WarmupScheduler(_LRScheduler):
+    def __init__(self, optimizer, warmup_steps, d_model):
         self.warmup_steps = warmup_steps
+        self.d_model = d_model
         self.current_step = 0
-        self.lr = 0
+        super().__init__(optimizer)
     
-    def zero_grad(self):
-        self.optimizer.zero_grad()
-        
     def get_lr(self):
-        return self.model_size ** (-0.5) * min(self.current_step ** (-0.5), self.current_step * self.warmup_steps ** (-1.5))
-        
-    def step(self):
-        # Increment the number of steps each time we call the step function
         self.current_step += 1
-        lr = self.get_lr()
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] = lr
+        lr = self.d_model ** (-0.5) * min(self.current_step ** (-0.5), self.current_step * self.warmup_steps ** (-1.5))
 
-        # update the learning rate
-        self.lr = lr
-        self.optimizer.step()   
+        return [lr for _ in self.base_lrs]
 
 
 if __name__ == '__main__':
@@ -66,14 +55,14 @@ if __name__ == '__main__':
 
     # criterion and optimizer
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
-    adam = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
-    optimizer = AdamWarmup(adam, config.d_emb, config.warmup_steps)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
+    scheduler = WarmupScheduler(optimizer, warmup_steps=config.warmup_steps, d_model=config.d_emb)
 
     # writer
     writer = SummaryWriter()
 
     # trainer
-    trainer = Trainer(model, criterion, optimizer, writer)
+    trainer = Trainer(model, criterion, optimizer, scheduler, writer)
 
     # train
     for epoch in range(config.n_epoch):

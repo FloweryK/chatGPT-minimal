@@ -36,10 +36,11 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, optimizer, writer):
+    def __init__(self, model, criterion, optimizer, scheduler, writer):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.writer = writer
     
     def run_epoch(self, epoch, dataloader, device, train=True, use_autocast=True, n_accum=1):
@@ -78,8 +79,11 @@ class Trainer:
                         # gradient accumulation
                         if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
                             self.optimizer.step()
+
+                            # we need to use warmup steps by iteration
+                            self.scheduler.step()
                             self.optimizer.zero_grad()
-                
+
                 # perf counter: end
                 t_end = time.perf_counter()
                 times.append(t_end - t_start)
@@ -96,7 +100,7 @@ class Trainer:
             
                 # update progress bar
                 pbar.update(1)
-                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.optimizer.lr:.6f} | bleu: {np.mean(bleus):.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
+                pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.scheduler.get_last_lr()[0]:.2e} | bleu: {np.mean(bleus):.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
 
             # save model
             if train and ((epoch + 1) % 5 == 0):
