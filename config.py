@@ -14,7 +14,7 @@ r_split = 0.9
 
 # training
 device = 'cuda'
-use_autocast = False
+use_amp = True
 n_epoch = 50
 n_batch = 32
 n_accum = 1

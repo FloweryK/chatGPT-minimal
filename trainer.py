@@ -36,14 +36,15 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, optimizer, scheduler, writer):
+    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer):
         self.model = model
         self.criterion = criterion
+        self.scaler = scaler
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.writer = writer
     
-    def run_epoch(self, epoch, dataloader, device, train=True, use_autocast=True, n_accum=1):
+    def run_epoch(self, epoch, dataloader, device, train=True, use_amp=False, n_accum=1):
         losses = []
         times = []
         bleus = []
@@ -64,21 +65,20 @@ class Trainer:
                 x_dec_target = x_dec[:, 1:]
 
                 # autocast
-                predict = self.model(x_enc, x_dec_input)
+                with torch.autocast(device_type=device, dtype=torch.float16) if use_amp else nullcontext():
+                    predict = self.model(x_enc, x_dec_input)
 
-                # loss
-                loss = self.criterion(predict, x_dec_target)
-                losses.append(loss.item())
-                loss = loss / n_accum
+                    # loss
+                    loss = self.criterion(predict, x_dec_target)
+                    losses.append(loss.item())
+                    self.scaler.scale(loss).backward()
 
-                # update model
-                if train:
-                    with torch.autocast(device_type=device, dtype=torch.float16) if (device == "cuda") and use_autocast else nullcontext():
-                        loss.backward()
-
+                    # update model
+                    if train:
                         # gradient accumulation
                         if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
-                            self.optimizer.step()
+                            self.scaler.step(self.optimizer)
+                            self.scaler.update()
 
                             # we need to use warmup steps by iteration
                             self.scheduler.step()

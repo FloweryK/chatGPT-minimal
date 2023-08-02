@@ -53,18 +53,21 @@ if __name__ == '__main__':
     model = model.to(config.device)
     print("model parameters:", get_model_parameters(model))
 
-    # criterion and optimizer
+    # criterion, optimizer and scheduler
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
     optimizer = torch.optim.Adam(model.parameters(), lr=config.lr, betas=(0.9, 0.98), eps=1e-9)
     scheduler = WarmupScheduler(optimizer, warmup_steps=config.warmup_steps, d_model=config.d_emb)
+
+    # scaler
+    scaler = torch.cuda.amp.GradScaler(enabled=config.use_amp)
 
     # writer
     writer = SummaryWriter()
 
     # trainer
-    trainer = Trainer(model, criterion, optimizer, scheduler, writer)
+    trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
 
     # train
     for epoch in range(config.n_epoch):
-        trainer.run_epoch(epoch, trainloader, device=config.device, train=True, use_autocast=config.use_autocast, n_accum=config.n_accum)
-        trainer.run_epoch(epoch, testloader, device=config.device, train=False, use_autocast=config.use_autocast, n_accum=config.n_accum)
+        trainer.run_epoch(epoch, trainloader, device=config.device, train=True, use_amp=config.use_amp, n_accum=config.n_accum)
+        trainer.run_epoch(epoch, testloader, device=config.device, train=False, use_amp=config.use_amp, n_accum=config.n_accum)
