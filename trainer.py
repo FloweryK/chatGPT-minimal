@@ -68,20 +68,26 @@ class Trainer:
                 with torch.autocast(device_type=device, dtype=torch.float16) if use_amp else nullcontext():
                     predict = self.model(x_enc, x_dec_input)
 
-                    # loss
+                    # calculate loss
                     loss = self.criterion(predict, x_dec_target)
                     losses.append(loss.item())
 
-                    # update model
                     if train:
-                        # gradient accumulation
+                        # accumulate gradient (x.grad += dloss/dx)
+                        self.scaler.scale(loss).backward()
+
                         if ((i+1) % n_accum == 0) or (i+1 == len(dataloader)):
-                            self.scaler.scale(loss).backward()
+                            # perform a step of gradient descent (x += -lr * x.grad)
+                            # if the gradients do not contain infs or NaNs, optimizer.step() is called. otherwise, optimizer.step() is skipped.
                             self.scaler.step(self.optimizer)
+
+                            # update the scale for next iteration
                             self.scaler.update()
 
-                            # we need to use warmup steps by iteration
+                            # update the learning rate (for every iteration)
                             self.scheduler.step()
+
+                            # clear gradient (x.grad = 0)
                             self.optimizer.zero_grad()
 
                 # perf counter: end
