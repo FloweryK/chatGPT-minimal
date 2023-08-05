@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 import config
 from constant import *
 from dataset.base import collate_fn
-from dataset.movie_corpus import MovieCorpusDataset
+from dataset.basic import BasicDataset
 from model.classifier import Classifier
 from trainer import Trainer
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     prefix = args.prefix
 
     # dataset
-    dataset = MovieCorpusDataset(config.n_vocab, path_data, path_vocab)
+    dataset = BasicDataset(config.n_vocab, path_data, path_vocab)
     train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
 

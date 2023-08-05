@@ -3,7 +3,7 @@ from constant import *
 from dataset.base import ChatDatasetBase
 
 
-class KoreanQADataset(ChatDatasetBase):
+class BasicDataset(ChatDatasetBase):
     def load_data(self, path_data):
         df = pd.read_csv(path_data)
         for i, row in df.iterrows():

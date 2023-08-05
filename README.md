@@ -22,9 +22,18 @@ This project contains:
 
 ## How to train
 
-1. Create your own dataset using `ChatDatasetBase` and implement `self.load_data` method, so that your dataset is stored in `self.data`.
+1. Prepare your dataset as a `csv` file with headers as 'Q' and 'A'. It might look like this:
 
-   - `self.data` is a dictionary, and **MUST** have its element as the following format:
+   | Q                                                            | A                                                 |
+   | ------------------------------------------------------------ | ------------------------------------------------- |
+   | Hey, you said one out of fourteen million, we'd win, yeah? Tell me this is it. | If I tell you what happens, it won't happen.      |
+   | Did she have any family?                                     | Yeah. Us.                                         |
+   | Don't do anything stupid until I come back.                  | How can I? You're taking all the stupid with you. |
+   | ...                                                          | ...                                               |
+
+   (Optional) Or, you can prepare your own dataset using `ChatDatasetBase`.
+
+   - If so, you sholud implement `self.load_data` so that your dataset is stored in `self.data`. `self.data` is a dictionary, and **MUST** have its elements as the following format:
 
      ```python
      self.data[answer_id] = {
@@ -62,7 +71,7 @@ This project contains:
      dataset = MovieCorpusDataset(path_data='utterances.jsonl')
      ```
 
-2. Make sure `train.py` properly loads your dataset, and run `train.py`.
+2. Run training. 
 
    ```bash
    $ python train.py -d {path-to-data} -v {path-to-vocab}
