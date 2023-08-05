@@ -1,3 +1,4 @@
+import os
 import argparse
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
@@ -35,9 +36,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data', required=True)
     parser.add_argument('-v', '--vocab', required=False)
+    parser.add_argument('-p', '--prefix', required=False, default='')
     args = parser.parse_args()
     path_data = args.data
     path_vocab = args.vocab
+    prefix = args.prefix
 
     # dataset
     dataset = MovieCorpusDataset(config.n_vocab, path_data, path_vocab)
@@ -62,7 +65,8 @@ if __name__ == '__main__':
     scaler = torch.cuda.amp.GradScaler(enabled=config.use_amp)
 
     # writer
-    writer = SummaryWriter(log_dir=f'runs/batch={config.n_batch}_accum={config.n_accum}_amp={config.use_amp}_warmup={config.warmup_steps}_demb={config.d_emb}')
+    os.makedirs(f'runs/{prefix}', exist_ok=True)
+    writer = SummaryWriter(log_dir=f'runs/{prefix}/vocab={config.n_vocab}_batch={config.n_batch}_accum={config.n_accum}_amp={config.use_amp}_warmup={config.warmup_steps}_demb={config.d_emb}')
 
     # trainer
     trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
