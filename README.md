@@ -74,13 +74,14 @@ This project contains:
 2. Run training. 
 
    ```bash
-   $ python train.py -d {path-to-data} -v {path-to-vocab}
+   $ python train.py -d {path-to-data} -v {path-to-vocab} - {prefix}
    ```
 
-   | flag        | description                           | example                                      | default               |
-   | ----------- | ------------------------------------- | -------------------------------------------- | --------------------- |
-   | -d, --data  | path to the dataset                   | -d src/dataset/movie-corpus/utterances.jsonl | required              |
-   | -v, --vocab | path to the sentencepiece vocab model | -v src/vocab/movie-corpus/vocab.model        | `src/vocab/tmp.model` |
+   | flag         | description                                                  | example                                      | default               |
+   | ------------ | ------------------------------------------------------------ | -------------------------------------------- | --------------------- |
+   | -d, --data   | path to the dataset                                          | -d src/dataset/movie-corpus/utterances.jsonl | required              |
+   | -v, --vocab  | path to the sentencepiece vocab model                        | -v src/vocab/movie-corpus/vocab.model        | `src/vocab/tmp.model` |
+   | -p, --prefix | path to the prefix of `log_dir` used in tensorboard's `SummaryWriter` | -p movie-corpus                              | `''`                  |
 
    - If you specify the vocab model path (`-v`):
 
