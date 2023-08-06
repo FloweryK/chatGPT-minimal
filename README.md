@@ -48,19 +48,19 @@ This project contains:
      ```python
      from dataset.base import ChatDatasetBase
       
+     
      class MovieCorpusDataset(ChatDatasetBase):
          def load_data(self, path_data):
              with open(path_data, 'r', encoding='iso-8859-1') as f:
                  for line in f:
                      # load line as json
                      obj = json.loads(line)
-      
+     
                      # make converstaion data
-                     text = obj['text'].strip()
+                     text = obj['text'].strip().lower()
                      answer_id = obj['id']
                      question_id = obj['reply-to']
-      
-                     # store the data
+     
                      self.data[answer_id] = {
                          'id': answer_id,
                          'text': [text],

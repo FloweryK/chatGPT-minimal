@@ -10,7 +10,7 @@ class MovieCorpusDataset(ChatDatasetBase):
                 obj = json.loads(line)
 
                 # make converstaion data
-                text = obj['text'].strip()
+                text = obj['text'].strip().lower()
                 answer_id = obj['id']
                 question_id = obj['reply-to']
 
