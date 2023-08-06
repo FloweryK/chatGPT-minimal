@@ -114,6 +114,7 @@ class Trainer:
             
             # tensorboard
             self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)
+            self.writer.add_scalar(f'Train/lr' if train else 'Test/lr', self.scheduler.get_last_lr()[0], epoch)
             self.writer.add_scalar(f'Train/bleu' if train else 'Test/bleu', np.mean(bleus), epoch)
             self.writer.add_scalar(f'Train/memory' if train else 'Test/memory', memory, epoch)
             self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times) * 1000, epoch)
