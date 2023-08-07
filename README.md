@@ -135,12 +135,13 @@ i'm the creator.	# answer
 
 - results (using only one gpu - GTX 1070 8GB)
 
-  | Dataset                      | # of QA | `n_batch` / `n_accum` | BLEU (train) | Time       | GPU Memory |
-  | ---------------------------- | ------- | --------------------- | ------------ | ---------- | ---------- |
-  | Cornell movie-dialogs corpus | 221,616 | 8 / 32                | 12.7 / 2.98  | 25.7 hours | 5.89 GB    |
-  | Korean Chatbot Data          | 11,823  | 32 / 1                | 96.3 / 33.8  | 25 mins    | 1.65 GB    |
-  | KakaoTalk (of my own)        | 13,609  | 32 / 1                | 92.5 / 0.292 | 38 mins    | 5.36 GB    |
-
+  | Dataset                            | dataset size | `n_batch` / `n_accum` | BLEU (train / test) | Time    | GPU Memory |
+  | ---------------------------------- | ------------ | --------------------- | ------------------- | ------- | ---------- |
+  | Cornell movie-dialogs corpus       | 221,616      | 8 / 32                | 12.7 / 2.98         | 25.7 hr | 5.89 GB    |
+  | Korean Chatbot Data                | 11,823       | 32 / 1                | 96.3 / 33.8         | 0.4 hr  | 1.65 GB    |
+  | KakaoTalk (of my own)              | 13,609       | 32 / 1                | 55.5 / 0.216        | 1.3 hr  | 6.01 GB    |
+  | KakaoTalk (of my own, one speaker) | 6,805        | 32 / 1                | 92.5 / 0.292        | 0.6 hr  | 5.36 GB    |
+  
   (Here, BLEU is calculated <u>*within teacher forcing*</u>, so it might not properly represent the real performance.)
 
 <br/>

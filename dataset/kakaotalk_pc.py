@@ -39,6 +39,13 @@ def is_picture(text):
 
 
 class KakaotalkPCDataset(ChatDatasetBase):
+    def __init__(self, n_vocab, path_data, path_vocab, speaker=None):
+        super().__init__(n_vocab, path_data, path_vocab)
+
+        if speaker is not None:
+            self.ids = [value['id'] for value in self.data.values() if value['speaker_name'] == speaker]
+            self.len = len(self.ids)
+            
     def load_data(self, path_data):
         with open(path_data, 'r', encoding="utf8") as f:
             i_prev = None
