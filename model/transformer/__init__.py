@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from transformer.embedding import Embedding
-from transformer.encoder import Encoder
-from transformer.decoder import Decoder
+from .embedding import Embedding
+from .encoder import Encoder
+from .decoder import Decoder
 
 
 def mask_pad(q, k, n_head):

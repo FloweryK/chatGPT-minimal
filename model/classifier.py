@@ -1,5 +1,5 @@
 import torch.nn as nn
-from transformer import Transformer
+from .transformer import Transformer
 
 
 class Classifier(nn.Module):
