@@ -43,7 +43,7 @@ class KakaotalkPCDataset(ChatDatasetBase):
         super().__init__(n_vocab, path_data, path_vocab)
 
         if speaker is not None:
-            self.ids = [value['id'] for value in self.data.values() if value['speaker_name'] == speaker]
+            self.ids = [i for i in self.ids if self.data[i]['speaker_name'] == speaker]
             self.len = len(self.ids)
             
     def load_data(self, path_data):
