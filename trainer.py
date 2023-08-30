@@ -1,3 +1,4 @@
+import os
 import time
 from collections import Counter
 from contextlib import nullcontext
@@ -36,13 +37,14 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer):
+    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer, run_dir):
         self.model = model
         self.criterion = criterion
         self.scaler = scaler
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.writer = writer
+        self.run_dir = run_dir
     
     def run_epoch(self, epoch, dataloader, device, train=True, use_amp=False, n_accum=1):
         losses = []
@@ -110,7 +112,7 @@ class Trainer:
 
             # save model
             if train and ((epoch + 1) % 5 == 0):
-                torch.save(self.model.state_dict(), f'weights/model_{epoch}.pt')
+                torch.save(self.model.state_dict(), os.path.join(self.run_dir, f'model_{epoch}.pt'))
             
             # tensorboard
             self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)

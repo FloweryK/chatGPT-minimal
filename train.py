@@ -82,7 +82,7 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=run_dir)
 
     # trainer
-    trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
+    trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer, run_dir)
 
     # train
     for epoch in range(config.n_epoch):
