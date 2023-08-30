@@ -57,17 +57,14 @@ This project provides:
 ## How to train
 
 ```bash
-$ python train.py -d {path-to-data} -v {path-to-vocab} -p {prefix}
+$ python train.py -d {path-to-data}
 ```
 
-| flag         | description                                     | example                          | default               |
-| ------------ | ----------------------------------------------- | -------------------------------- | --------------------- |
-| -d, --data   | path to the dataset                             | -d src/dataset/chatbot_data.csv  | Required              |
-| -v, --vocab  | path to the sentencepiece vocab model           | -v src/vocab/chatbot_vocab.model | `src/vocab/tmp.model` |
-| -p, --prefix | path to the prefix of `log_dir` for tensorboard | -p chatbot                       | `''`                  |
+| flag       | description         | example                         | default  |
+| ---------- | ------------------- | ------------------------------- | -------- |
+| -d, --data | path to the dataset | -d src/dataset/chatbot_data.csv | Required |
 
-- If you don't specify `--vocab`, then `ChatDatasetBase` will train a sentencepiece vocab model based on your dataset and save it at the default path ( `src/vocab/tmp.model`).
-- If you specify `--vocab` and there exists such model at the path, `ChatDatasetbase` will use it to encode texts. Otherwise, `ChatDatasetBase` with train and save the vocab model at the specified path.
+- the corresponding files will be stored in `runs/{datetime}_vocab={vocab_size}...`
 
 <br/>
 
@@ -87,10 +84,10 @@ $ tensorboard --logdir=runs/
 $ python chatbot.py -v {path-to-vocab} -w {path-to-weight}
 ```
 
-| flag         | description                           | example                               | default  |
-| ------------ | ------------------------------------- | ------------------------------------- | -------- |
-| -v, --vocab  | path to the sentencepiece vocab model | -v src/vocab/movie-corpus/vocab.model | Required |
-| -w, --weight | path to the trained weight            | -w weights/model_49.pt                | Required |
+| flag         | description                           | example                          | default  |
+| ------------ | ------------------------------------- | -------------------------------- | -------- |
+| -v, --vocab  | path to the sentencepiece vocab model | -v runs/20230830_.../vocab.model | Required |
+| -w, --weight | path to the trained weight            | -w runs/20230830_.../model_49.pt | Required |
 
 ```bash
 $ python chatbot.py -v {path-to-vocab} -w {path-to-weight}
