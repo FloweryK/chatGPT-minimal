@@ -26,32 +26,35 @@ class ChatDatasetBase(Dataset):
         raise NotImplementedError()
     
     def load_vocab(self, n_vocab, path_vocab):
-        if path_vocab and (not os.path.exists(path_vocab)):
-            path_prefix = path_vocab[:-6] 
-            path_txt = path_prefix + '.txt'
+        path_prefix = path_vocab[:-6] 
+        path_txt = path_prefix + '.txt'
 
-            # create a tmp txt file for sentencepiece training
-            with open(path_txt, 'w', encoding='utf8') as f:
-                for chat in self.data.values():
-                    f.write(' '.join(chat['text']) + '\n')
-            
-            # train sentencepiece
-            spm.SentencePieceTrainer.train(
-                input=path_txt,
-                vocab_size=n_vocab,
-                model_prefix=path_prefix,
-                model_type='bpe',
-                max_sentence_length=9999,
-                pad_id=PAD,
-                pad_piece='[PAD]',
-                unk_id=UNK,
-                unk_piece='[UNK]',
-                bos_id=BOS,
-                bos_piece='[BOS]',
-                eos_id=EOS,
-                eos_piece='[EOS]',
-                user_defined_symbols=['[SEP]', '[CLS]', '[MASK]']
-            )
+        # create a tmp txt file for sentencepiece training
+        with open(path_txt, 'w', encoding='utf8') as f:
+            for chat in self.data.values():
+                f.write(' '.join(chat['text']) + '\n')
+        
+        # train sentencepiece
+        spm.SentencePieceTrainer.train(
+            input=path_txt,
+            vocab_size=n_vocab,
+            model_prefix=path_prefix,
+            model_type='bpe',
+            max_sentence_length=9999,
+            pad_id=PAD,
+            pad_piece='[PAD]',
+            unk_id=UNK,
+            unk_piece='[UNK]',
+            bos_id=BOS,
+            bos_piece='[BOS]',
+            eos_id=EOS,
+            eos_piece='[EOS]',
+            user_defined_symbols=['[SEP]', '[CLS]', '[MASK]']
+        )
+
+        # delete unnecessary files
+        os.remove(path_txt)
+        os.remove(path_prefix + '.vocab')
 
         # load vocab
         self.vocab.Load(path_vocab)

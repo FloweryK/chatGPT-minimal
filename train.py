@@ -1,4 +1,5 @@
 import os
+import datetime
 import argparse
 import torch
 from torch.optim.lr_scheduler import _LRScheduler
@@ -34,15 +35,28 @@ class WarmupScheduler(_LRScheduler):
 if __name__ == '__main__':
     # argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--data', required=True)
-    parser.add_argument('-v', '--vocab', required=False)
-    parser.add_argument('-p', '--prefix', required=False, default='')
+    parser.add_argument('-d', '--path_data', required=True)
+    
     args = parser.parse_args()
-    path_data = args.data
-    path_vocab = args.vocab
-    prefix = args.prefix
+    path_data = args.path_data
+
+    # create base directory
+    base_dir = 'runs'
+    run_dir = os.path.join(
+        base_dir,
+        f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}' \
+        + f'_vocab={config.n_vocab}' + f'_batch={config.n_batch}' \
+        + f'_accum={config.n_accum}' \
+        + f'_amp={config.use_amp}' \
+        + f'_warmup={config.warmup_steps}' \
+        + f'_demb={config.d_emb}'
+    )
+        
+    os.makedirs(base_dir, exist_ok=True)
+    os.makedirs(run_dir, exist_ok=True)
 
     # dataset
+    path_vocab = os.path.join(run_dir, 'vocab.model')
     dataset = BasicDataset(config.n_vocab, path_data, path_vocab)
     train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
@@ -65,8 +79,7 @@ if __name__ == '__main__':
     scaler = torch.cuda.amp.GradScaler(enabled=config.use_amp)
 
     # writer
-    os.makedirs(f'runs/{prefix}', exist_ok=True)
-    writer = SummaryWriter(log_dir=f'runs/{prefix}/vocab={config.n_vocab}_batch={config.n_batch}_accum={config.n_accum}_amp={config.use_amp}_warmup={config.warmup_steps}_demb={config.d_emb}')
+    writer = SummaryWriter(log_dir=run_dir)
 
     # trainer
     trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
