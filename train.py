@@ -49,17 +49,27 @@ if __name__ == '__main__':
         + f'_accum={config.n_accum}' \
         + f'_amp={config.use_amp}' \
         + f'_warmup={config.warmup_steps}' \
-        + f'_demb={config.d_emb}'
+        + f'_demb={config.d_emb}' \
+        + f'_augment={config.augment}' \
+        + f'_topn={config.augment_topn}' \
+        + f'_threshold={config.augment_threshold}' \
     )
         
     os.makedirs(base_dir, exist_ok=True)
     os.makedirs(run_dir, exist_ok=True)
 
     # dataset
-    path_vocab = os.path.join(run_dir, 'vocab.model')
-    dataset = BasicDataset(config.n_vocab, path_data, path_vocab)
+    dataset = BasicDataset(
+        path_data=path_data,
+        run_dir=run_dir,
+        n_vocab=config.n_vocab,
+        augment=config.augment,
+        topn=config.augment_topn,
+        threshold=config.augment_threshold,
+    )
     train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
+    print(f"trainset: {len(trainset)}, testset: {len(testset)}")
 
     # dataloader
     trainloader = DataLoader(trainset, batch_size=config.n_batch, shuffle=True, collate_fn=collate_fn)

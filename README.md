@@ -5,15 +5,16 @@ A minimal, standalone pytorch implementation of chatGPT.
 This project provides:
 
 - Base dataset class which only requires a `csv` file as its data source.
-
 - Custom dataset class samples:
   - [Cornell movie-dialogs Corpus](https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html)
   - [Korean Chatbot data](https://github.com/songys/Chatbot_data)
   - KakaoTalk (downloaded from your own mobile phone or PC)
 - Optimization options for the training:
+  - Data Augmentation based on Doc2Vec
   - [Automatic Mixed Precision to FP16](https://pytorch.org/docs/stable/notes/amp_examples.html)
   - [Gradient Accumulation](https://kozodoi.me/blog/20210219/gradient-accumulation)
   - Warmup scheduler
+  
 
 <br/>
 
@@ -120,6 +121,9 @@ i'm the creator.	# answer
   
   # dataset
   r_split = 0.9
+  augment = True
+  augment_topn = 10
+  augment_threshold = 0.7
   
   # training
   device = 'cuda'

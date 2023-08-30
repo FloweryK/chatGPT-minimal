@@ -11,6 +11,9 @@ assert d_emb % n_head == 0
 
 # dataset
 r_split = 0.9
+augment = True
+augment_topn = 10
+augment_threshold = 0.7
 
 # training
 device = 'cuda'
