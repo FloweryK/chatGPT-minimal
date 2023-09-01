@@ -1,10 +1,9 @@
-import os
 import time
+import torch
+import numpy as np
+from tqdm import tqdm
 from collections import Counter
 from contextlib import nullcontext
-import numpy as np
-import torch
-from tqdm import tqdm
 from constant import *
 
 
@@ -37,26 +36,25 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer, run_dir):
+    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer):
         self.model = model
         self.criterion = criterion
         self.scaler = scaler
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.writer = writer
-        self.run_dir = run_dir
     
-    def run_epoch(self, epoch, dataloader, device, train=True, use_amp=False, n_accum=1):
+    def run_epoch(self, epoch, dataloader, device, is_train, is_amp, n_accum):
         losses = []
         times = []
         bleus = []
 
-        if train:
+        if is_train:
             self.model.train()
         else:
             self.model.eval()
 
-        with tqdm(total=len(dataloader), desc=f"{'train' if train else 'test '} {epoch}") as pbar:
+        with tqdm(total=len(dataloader), desc=f"{'train' if is_train else 'test '} {epoch}") as pbar:
             for i, data in enumerate(dataloader):
                 # perf counter: start
                 t_start = time.perf_counter()
@@ -67,14 +65,14 @@ class Trainer:
                 x_dec_target = x_dec[:, 1:]
 
                 # autocast
-                with torch.autocast(device_type=device, dtype=torch.float16) if use_amp else nullcontext():
+                with torch.autocast(device_type=device, dtype=torch.float16) if is_amp else nullcontext():
                     predict = self.model(x_enc, x_dec_input)
 
                     # calculate loss
                     loss = self.criterion(predict, x_dec_target)
                     losses.append(loss.item())
 
-                    if train:
+                    if is_train:
                         # accumulate gradient (x.grad += dloss/dx)
                         self.scaler.scale(loss).backward()
 
@@ -109,16 +107,15 @@ class Trainer:
                 # update progress bar
                 pbar.update(1)
                 pbar.set_postfix_str(f"Loss: {losses[-1]:.2f} ({np.mean(losses):.2f}) | lr: {self.scheduler.get_last_lr()[0]:.2e} | bleu: {np.mean(bleus):.1f} | {memory:.2f}GB | {np.mean(times) * 1000:.0f}ms")
-
-            # save model
-            if train and ((epoch + 1) % 5 == 0):
-                torch.save(self.model.state_dict(), os.path.join(self.run_dir, f'model_{epoch}.pt'))
             
             # tensorboard
-            self.writer.add_scalar(f'Train/Loss' if train else 'Test/Loss', np.mean(losses), epoch)
-            self.writer.add_scalar(f'Train/lr' if train else 'Test/lr', self.scheduler.get_last_lr()[0], epoch)
-            self.writer.add_scalar(f'Train/bleu' if train else 'Test/bleu', np.mean(bleus), epoch)
-            self.writer.add_scalar(f'Train/memory' if train else 'Test/memory', memory, epoch)
-            self.writer.add_scalar(f'Train/time_iter' if train else 'Test/time_iter', np.mean(times) * 1000, epoch)
-            self.writer.add_scalar(f'Train/time_epoch' if train else 'Test/time_epoch', np.sum(times), epoch)
+            self.writer.add_scalar(f'Train/Loss' if is_train else 'Test/Loss', np.mean(losses), epoch)
+            self.writer.add_scalar(f'Train/lr' if is_train else 'Test/lr', self.scheduler.get_last_lr()[0], epoch)
+            self.writer.add_scalar(f'Train/bleu' if is_train else 'Test/bleu', np.mean(bleus), epoch)
+            self.writer.add_scalar(f'Train/memory' if is_train else 'Test/memory', memory, epoch)
+            self.writer.add_scalar(f'Train/time_iter' if is_train else 'Test/time_iter', np.mean(times) * 1000, epoch)
+            self.writer.add_scalar(f'Train/time_epoch' if is_train else 'Test/time_epoch', np.sum(times), epoch)
 
+
+    def save_weight(self, path_weight):
+        torch.save(self.model.state_dict(), path_weight)

@@ -1,0 +1,24 @@
+{
+  "n_vocab": 20007,
+  "n_seq": 1000,
+  "n_layer": 6,
+  "n_head": 8,
+  "d_emb": 512,
+  "d_hidden": 2048,
+  "dropout": 0.1,
+  "scale": 8,
+
+  "r_split": 0.9,
+  "is_augment": true,
+  "augment_topn": 10,
+  "augment_threshold": 0.7,
+
+  "device": "cuda",
+  "is_amp": true,
+  "n_epoch": 50,
+  "n_batch": 32,
+  "n_accum": 1,
+  "lr": 1e-5,
+  "warmup_steps": 4000,
+  "label_smoothing": 0.1
+}

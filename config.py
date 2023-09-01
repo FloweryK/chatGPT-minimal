@@ -1,26 +1,10 @@
-# model
-n_vocab = 30000+7
-n_seq = 1000
-n_layer = 6
-n_head = 8
-d_emb = 512
-d_hidden = 2048
-dropout = 0.1
-scale = (d_emb // n_head)**(1/2)
-assert d_emb % n_head == 0
+import json
 
-# dataset
-r_split = 0.9
-augment = True
-augment_topn = 10
-augment_threshold = 0.7
 
-# training
-device = 'cuda'
-use_amp = True
-n_epoch = 50
-n_batch = 32
-n_accum = 1
-lr = 1e-5
-warmup_steps = 4000
-label_smoothing = 0.1
+class Config:
+    def __init__(self, path_config):
+        with open(path_config, 'r') as j:
+            config = json.load(j)
+        
+        for key, value in config.items():
+            setattr(self, key, value)
