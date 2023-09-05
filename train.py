@@ -33,6 +33,7 @@ def create_directories(config):
         + f'_augment={config.is_augment}' \
         + f'_topn={config.augment_topn}' \
         + f'_threshold={config.augment_threshold}' \
+        + f'_split={config.split_type}'
     )
     os.makedirs('runs', exist_ok=True)
     os.makedirs(base_dir, exist_ok=True)

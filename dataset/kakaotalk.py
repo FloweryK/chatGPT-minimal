@@ -1,4 +1,5 @@
 import re
+import kss
 from dataset.base import ChatDatasetBase
 
 
@@ -47,9 +48,10 @@ def is_picture(text):
 
 
 class KakaotalkDataset(ChatDatasetBase):
-    def __init__(self, path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold, speaker):
+    def __init__(self, path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold, speaker, split_type):
         # base initialization
-        super().__init__(path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold, )
+        self.split_type = split_type
+        super().__init__(path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold)
         
         # speaker filtering
         if speaker is not None:
@@ -94,3 +96,13 @@ class KakaotalkDataset(ChatDatasetBase):
                 
                 if len(self.data) < len(tmp):
                     self.data = tmp
+        
+        for chat_id in self.data:
+            text = self.data[chat_id]['text']
+
+            if self.split_type == 'raw':
+                pass
+            elif self.split_type == 'kss':
+                text = ' '.join(text)
+                text = kss.split_sentences(text)
+                self.data[chat_id]['text'] = text

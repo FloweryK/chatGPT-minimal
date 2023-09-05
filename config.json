@@ -12,6 +12,7 @@
   "is_augment": true,
   "augment_topn": 10,
   "augment_threshold": 0.7,
+  "split_type": "kss",
 
   "device": "cuda",
   "is_amp": true,
