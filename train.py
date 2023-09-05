@@ -60,8 +60,6 @@ class WarmupScheduler(_LRScheduler):
 if __name__ == '__main__':
     # parse arguments
     args = parse_arguments()
-
-    # set paths
     path_data = args.path_data
     path_config = args.path_config
 
@@ -112,3 +110,4 @@ if __name__ == '__main__':
     for epoch in range(config.n_epoch):
         trainer.run_epoch(epoch, trainloader, config.device, True, config.is_amp, config.n_accum)
         trainer.run_epoch(epoch, testloader, config.device, False, config.is_amp, config.n_accum)
+        trainer.save_weight(path_weight)
