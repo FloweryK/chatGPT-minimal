@@ -47,9 +47,9 @@ def is_picture(text):
 
 
 class KakaotalkDataset(ChatDatasetBase):
-    def __init__(self, path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold, speaker):
+    def __init__(self, path_data, path_prefix, n_vocab, is_augment, augment_topn, augment_threshold, speaker):
         # base initialization
-        super().__init__(path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold)
+        super().__init__(path_data, path_prefix, n_vocab, is_augment, augment_topn, augment_threshold)
         
         # speaker filtering
         if speaker is not None:

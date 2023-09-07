@@ -65,13 +65,13 @@ if __name__ == '__main__':
 
     config = Config(path_config)
     base_dir = create_directories(config)
-    path_vocab = os.path.join(base_dir, 'vocab.model')
+    path_prefix = os.path.join(base_dir, 'vocab')
     path_weight = os.path.join(base_dir, 'model.pt')
         
     # dataset
     dataset = BasicDataset(
         path_data=path_data,
-        path_vocab=path_vocab,
+        path_prefix=path_prefix,
         n_vocab=config.n_vocab,
         is_augment=config.is_augment,
         augment_topn=config.augment_topn,

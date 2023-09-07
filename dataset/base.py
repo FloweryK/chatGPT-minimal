@@ -7,14 +7,14 @@ from constant import *
 
 
 class ChatDatasetBase(Dataset):
-    def __init__(self, path_data, path_vocab, n_vocab, is_augment, augment_topn, augment_threshold):
+    def __init__(self, path_data, path_prefix, n_vocab, is_augment, augment_topn, augment_threshold):
         super().__init__()
 
         # load and encode data
         self.data = {}
         self.vocab = spm.SentencePieceProcessor()
         self.load_data(path_data)
-        self.load_vocab(path_vocab, n_vocab)
+        self.load_vocab(path_prefix, n_vocab)
         self.encode_data()
         
         # data augmentation
@@ -28,11 +28,11 @@ class ChatDatasetBase(Dataset):
     def load_data(self):
         raise NotImplementedError()
     
-    def load_vocab(self, path_vocab, n_vocab):
+    def load_vocab(self, path_prefix, n_vocab):
         # set paths
-        path_prefix = path_vocab[:-6] 
         path_txt = path_prefix + '.txt'
         path_tmp = path_prefix + '.vocab'
+        path_vocab = path_prefix + '.model'
 
         # create a tmp txt file for sentencepiece training
         with open(path_txt, 'w', encoding='utf8') as f:
