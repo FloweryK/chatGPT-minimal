@@ -9,9 +9,6 @@
   "scale": 8,
 
   "r_split": 0.9,
-  "is_augment": true,
-  "augment_topn": 10,
-  "augment_threshold": 0.7,
 
   "device": "cuda",
   "is_amp": true,

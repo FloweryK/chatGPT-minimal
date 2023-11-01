@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from collections import Counter
 from contextlib import nullcontext
-from constant import *
+from utils.constant import *
 
 
 def get_bleu(reference, candidate, N=4):
@@ -36,13 +36,14 @@ def get_bleu(reference, candidate, N=4):
 
 
 class Trainer:
-    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer):
+    def __init__(self, model, criterion, scaler, optimizer, scheduler, writer, tokenizer):
         self.model = model
         self.criterion = criterion
         self.scaler = scaler
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.writer = writer
+        self.tokenizer = tokenizer
     
     def run_epoch(self, epoch, dataloader, device, is_train, is_amp, n_accum):
         losses = []
@@ -96,6 +97,11 @@ class Trainer:
 
                 # extract logits from predict
                 predict = torch.argmax(predict, dim=1)
+
+                # get examples
+                print(self.tokenizer.DecodeIds(x_enc[0].tolist()))
+                print(self.tokenizer.DecodeIds(x_dec_target[0].tolist()))
+                print(self.tokenizer.DecodeIds(predict[0].tolist()))
 
                 # get bleu
                 bleus.extend([get_bleu(ref, cand) for ref, cand in zip(x_dec_target, predict)])

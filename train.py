@@ -2,16 +2,14 @@ import os
 import datetime
 import argparse
 import torch
-from torch.optim.lr_scheduler import _LRScheduler
-from torch.utils.data import Subset, DataLoader, random_split
+from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
-
-from constant import *
-from config import Config
-from dataset.base import collate_fn
-from dataset.basic import BasicDataset
 from model.classifier import Classifier
-from trainer import Trainer
+from utils.constant import *
+from utils.config import Config
+from utils.dataset import ChatDataset
+from utils.scheduler import WarmupScheduler
+from utils.trainer import Trainer
 
 
 def parse_arguments():
@@ -29,10 +27,7 @@ def create_directories(config):
         + f'_accum={config.n_accum}' \
         + f'_amp={config.is_amp}' \
         + f'_warmup={config.warmup_steps}' \
-        + f'_demb={config.d_emb}' \
-        + f'_augment={config.is_augment}' \
-        + f'_topn={config.augment_topn}' \
-        + f'_threshold={config.augment_threshold}'
+        + f'_demb={config.d_emb}'
     )
     os.makedirs('runs', exist_ok=True)
     os.makedirs(base_dir, exist_ok=True)
@@ -41,20 +36,6 @@ def create_directories(config):
 
 def get_model_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
-
-class WarmupScheduler(_LRScheduler):
-    def __init__(self, optimizer, warmup_steps, d_model):
-        self.warmup_steps = warmup_steps
-        self.d_model = d_model
-        self.current_step = 0
-        super().__init__(optimizer)
-    
-    def get_lr(self):
-        self.current_step += 1
-        lr = self.d_model ** (-0.5) * min(self.current_step ** (-0.5), self.current_step * self.warmup_steps ** (-1.5))
-
-        return [lr for _ in self.base_lrs]
 
 
 if __name__ == '__main__':
@@ -69,28 +50,21 @@ if __name__ == '__main__':
     path_weight = os.path.join(base_dir, 'model.pt')
         
     # dataset
-    dataset = BasicDataset(
+    dataset = ChatDataset(
         path_data=path_data,
         path_prefix=path_prefix,
         n_vocab=config.n_vocab,
-        is_augment=config.is_augment,
-        augment_topn=config.augment_topn,
-        augment_threshold=config.augment_threshold,
     )
     train_size = int(config.r_split * len(dataset))
     trainset, testset = random_split(dataset, [train_size, len(dataset) - train_size])
-    
-    # filter out augmented data in the testset
-    testset = Subset(testset, indices=[i for i, data in enumerate(testset) if not data['is_augmented']])
 
     # dataloader
-    trainloader = DataLoader(trainset, batch_size=config.n_batch, shuffle=True, collate_fn=collate_fn)
-    testloader = DataLoader(testset, batch_size=config.n_batch, shuffle=True, collate_fn=collate_fn)
+    trainloader = DataLoader(trainset, batch_size=config.n_batch, shuffle=True, collate_fn=dataset.collate_fn)
+    testloader = DataLoader(testset, batch_size=config.n_batch, shuffle=True, collate_fn=dataset.collate_fn)
 
     # model
     model = Classifier(config)
     model = model.to(config.device)
-    print("model parameters:", get_model_parameters(model))
 
     # criterion, optimizer and scheduler
     criterion = torch.nn.CrossEntropyLoss(ignore_index=PAD, label_smoothing=config.label_smoothing)
@@ -104,7 +78,7 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=base_dir)
 
     # trainer
-    trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer)
+    trainer = Trainer(model, criterion, scaler, optimizer, scheduler, writer, dataset.tokenizer)
 
     # train
     for epoch in range(config.n_epoch):

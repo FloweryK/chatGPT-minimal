@@ -1,9 +1,8 @@
-import os
 import argparse
 import torch
 import sentencepiece as spm
-import config
-from constant import *
+import utils.config as config
+from utils.constant import *
 from model.classifier import Classifier
 
 
