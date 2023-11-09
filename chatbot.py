@@ -1,9 +1,9 @@
 import argparse
 import torch
 import sentencepiece as spm
-import utils.config as config
 from utils.constant import *
-from model.classifier import Classifier
+from utils.config import Config
+from model.classifier2 import Classifier
 
 
 class Chatbot:
@@ -48,12 +48,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-w', '--weight', required=True)
     parser.add_argument('-v', '--vocab', required=True)
+    parser.add_argument('-c', '--path_config', default='./config.json')
     args = parser.parse_args()
     
     path_vocab = args.vocab
     path_weight = args.weight
+    path_config = args.path_config
 
     # chatbot
+    config = Config(path_config)
     chatbot = Chatbot(config, path_vocab, path_weight)
 
     # chat
