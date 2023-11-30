@@ -3,7 +3,7 @@ import torch
 import sentencepiece as spm
 from utils.constant import *
 from utils.config import Config
-from model.classifier2 import Classifier
+from model.classifier_builtin import Classifier
 
 
 class Chatbot:

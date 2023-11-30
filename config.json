@@ -10,8 +10,8 @@
 
   "r_split": 0.9,
 
-  "device": "cuda",
-  "is_amp": true,
+  "device": "cpu",
+  "is_amp": false,
   "n_epoch": 50,
   "n_batch": 32,
   "n_accum": 1,

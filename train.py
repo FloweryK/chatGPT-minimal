@@ -4,7 +4,7 @@ import argparse
 import torch
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
-from model.classifier import Classifier
+from model.classifier_builtin import Classifier
 from utils.constant import *
 from utils.config import Config
 from utils.dataset import ChatDataset
