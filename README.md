@@ -1,97 +1,100 @@
-# chatGPT-minimal
+# transformer-chatbot
 
-A minimal, standalone pytorch implementation of chatGPT.
+> :bulb: A simple chatbot using transformer
 
 This project provides:
 
-- Base dataset class which only requires a `csv` file as its data source.
-- Custom dataset class samples:
-  - [Cornell movie-dialogs Corpus](https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html)
-  - [Korean Chatbot data](https://github.com/songys/Chatbot_data)
-  - KakaoTalk (downloaded from your own mobile phone or PC)
-- Optimization options for the training:
-  - Data Augmentation based on Doc2Vec
+- **_One_** `dataset` class:
+
+  - which uses `sentencepiece` as its tokenizer, and requires the dataset as a csv file (formats are described below)
+
+- **_Two_** `Trasnformer` models:
+
+  - an usecase of `nn.Transformer`, and a built-from-scratch transformer with explanations.
+
+- **_Three_** optimization settings for training:
   - [Automatic Mixed Precision to FP16](https://pytorch.org/docs/stable/notes/amp_examples.html)
   - [Gradient Accumulation](https://kozodoi.me/blog/20210219/gradient-accumulation)
   - Warmup scheduler
-  
 
 <br/>
 
 <br/>
 
-## How to prepare your dataset
+## How to install
 
-##### Case 1: If you want to use your dataset as a csv file
+```bash
+# (optional: create a virtualenv)
+>> virtualenv venv -p python3
+>> source venv/bin/activate
+
+# install with requirements.txt
+>> pip install -r requirements.txt
+```
+
+<br/>
+
+<br/>
+
+## How to use
+
+#### 1. Prepare your dataset as a csv file
 
 - Prepare your dataset as a `csv` file with headers as 'Q' and 'A'. It might look like this:
 
-  | Q                                                            | A                                                 |
-  | ------------------------------------------------------------ | ------------------------------------------------- |
+  | Q                                                                              | A                                                 |
+  | ------------------------------------------------------------------------------ | ------------------------------------------------- |
   | Hey, you said one out of fourteen million, we'd win, yeah? Tell me this is it. | If I tell you what happens, it won't happen.      |
-  | Did she have any family?                                     | Yeah. Us.                                         |
-  | Don't do anything stupid until I come back.                  | How can I? You're taking all the stupid with you. |
-  | ...                                                          | ...                                               |
-
-<br/>
-
-##### Case 2: If you want to create your own dataset class
-
-- You may use `ChatDatasetBase` and  implement `self.load_data` so that your dataset is stored in `self.data`. 
-
-- `self.data` is a dictionary, and **MUST** have its elements as the following format:
-
-  ```python
-  self.data[answer_id] = {
-      'id': answer_id,
-      'text': [text],
-      'question_id': question_id,
-  }
-  ```
-
-- Here's a [sample code](dataset/movie_corpus.py) which loads [Cornell movie-dialogs Corpus](https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html) dataset. You can find more in `dataset/` directory.
+  | Did she have any family?                                                       | Yeah. Us.                                         |
+  | Don't do anything stupid until I come back.                                    | How can I? You're taking all the stupid with you. |
+  | ...                                                                            | ...                                               |
 
 <br/>
 
 <br/>
 
-## How to train
+#### 2. Train the chatbot
 
 ```bash
-$ python train.py -d {path-to-data}
+>> python train.py -d {path-to-the-csv}
 ```
 
 | flag       | description         | example                         | default  |
 | ---------- | ------------------- | ------------------------------- | -------- |
 | -d, --data | path to the dataset | -d src/dataset/chatbot_data.csv | Required |
 
-- the corresponding files will be stored in `runs/{datetime}_vocab={vocab_size}...`
+- this will create three files under `runs/{datetime}_vocab={vocab_size}...`
+  1. a vocab file used in the sentencepiece (which might be needed when inferencing)
+  2. a model weight file (which might also be needed when inferencing)
+  3. a tensorboard event file
 
 <br/>
 
-##### (Optional) Run tensorboard and monitor metircs
+<br/>
+
+#### 3. (Optional) Run tensorboard and monitor metircs
 
 ```bash
-$ tensorboard --logdir=runs/
+>> tensorboard --logdir=runs/
 ```
 
 <br/>
 
 <br/>
 
-## How to talk to a trained model
+#### 4. Talk to the trained model
 
 ```bash
-$ python chatbot.py -v {path-to-vocab} -w {path-to-weight}
+>> python chatbot.py -v {path-to-vocab} -w {path-to-weight}
 ```
 
-| flag         | description                           | example                          | default  |
-| ------------ | ------------------------------------- | -------------------------------- | -------- |
-| -v, --vocab  | path to the sentencepiece vocab model | -v runs/20230830_.../vocab.model | Required |
-| -w, --weight | path to the trained weight            | -w runs/20230830_.../model_49.pt | Required |
+| flag         | description                           | example                           | default  |
+| ------------ | ------------------------------------- | --------------------------------- | -------- |
+| -v, --vocab  | path to the sentencepiece vocab model | -v runs/20230830\_.../vocab.model | Required |
+| -w, --weight | path to the trained weight            | -w runs/20230830\_.../model_49.pt | Required |
 
 ```bash
-$ python chatbot.py -v {path-to-vocab} -w {path-to-weight}
+>> python chatbot.py -v {path-to-vocab} -w {path-to-weight}
 text: who are you?
 
 [2, 187, 124, 16, 19991, 3] # encoded pieces of the input text
@@ -107,7 +110,7 @@ i'm the creator.	# answer
 
 ## Performance Test Results
 
-- config used for testing (everything is the same except `n_batch` and `n_accum` due to OOM)
+- config used for testing
 
   ```python
   # model
@@ -118,13 +121,10 @@ i'm the creator.	# answer
   d_emb = 512		# also known as d_model
   d_hidden = 2048
   dropout = 0.1
-  
+
   # dataset
   r_split = 0.9
-  augment = True
-  augment_topn = 10
-  augment_threshold = 0.7
-  
+
   # training
   device = 'cuda'
   use_amp = True
@@ -142,8 +142,8 @@ i'm the creator.	# answer
   | Korean Chatbot Data                | 11,823       | 32 / 1                | 96.3 / 33.8         | 0.4 hr  | 1.65 GB    |
   | KakaoTalk (of my own)              | 13,609       | 32 / 1                | 55.5 / 0.216        | 1.3 hr  | 6.01 GB    |
   | KakaoTalk (of my own, one speaker) | 6,805        | 32 / 1                | 92.5 / 0.292        | 0.6 hr  | 5.36 GB    |
-  
-  (Here, BLEU is calculated <u>*within teacher forcing*</u>, so it might not properly represent the real performance.)
+
+  (Here, BLEU is calculated <u>_within teacher forcing_</u>, so it might not properly represent the real performance.)
 
 <br/>
 
